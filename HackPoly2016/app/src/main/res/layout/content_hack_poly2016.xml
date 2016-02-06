@@ -12,8 +12,9 @@
     tools:context="com.inasweaterpoorlyknit.hackpoly2016.HackPoly2016Activity"
     tools:showIn="@layout/activity_hack_poly2016">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
+   <Button
+       android:layout_width="250dp"
+       android:layout_height="100dp"
+       android:gravity="center"
+       />
 </RelativeLayout>
