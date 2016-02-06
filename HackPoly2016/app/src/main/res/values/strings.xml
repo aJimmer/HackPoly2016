@@ -4,4 +4,5 @@
     <string name="hostPart">Host Party</string>
     <string name="host Party">hostParty</string>
     <string name="title_activity_host_lobby">HostLobby</string>
+    <string name="title_activity_display_message">My Message</string>
 </resources>

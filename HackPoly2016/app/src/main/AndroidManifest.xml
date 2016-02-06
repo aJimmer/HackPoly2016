@@ -21,7 +21,16 @@
         <activity
             android:name=".HostLobby"
             android:label="@string/title_activity_host_lobby"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".DisplayMessageActivity"
+            android:label="@string/title_activity_display_message"
+            android:parentActivityName=".HackPoly2016Activity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.inasweaterpoorlyknit.hackpoly2016.HackPoly2016Activity" />
+        </activity>
     </application>
 
 </manifest>

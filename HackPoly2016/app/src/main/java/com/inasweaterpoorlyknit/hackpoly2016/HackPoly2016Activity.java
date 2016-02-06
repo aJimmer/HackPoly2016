@@ -9,11 +9,13 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.content.Intent;
+import android.widget.EditText;
 
 public class HackPoly2016Activity extends AppCompatActivity {
     Button hostParty;
     Button joinParty;
-
+    public final static String EXTRA_MESSAGE = "com.inasweaterpoorlyknit.hackpoly2016.MESSAGE";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,12 +29,18 @@ public class HackPoly2016Activity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //Method that activates host lobby
+                Intent intent = new Intent(this, DisplayMessageActivity.class);
+                EditText editText = (EditText) findViewById(R.id.edit_message);
+                String message = editText.getText().toString();
+                intent.putExtra(EXTRA_MESSAGE, message);
+                startActivity(intent);
             }
         });
         joinParty.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //Method that activates client lobby
+
             }
         });
 
