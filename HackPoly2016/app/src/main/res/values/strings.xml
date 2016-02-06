@@ -1,8 +1,6 @@
 <resources>
     <string name="app_name">HackPoly2016</string>
     <string name="action_settings">Settings</string>
-    <string name="hostPart">Host Party</string>
-    <string name="hostParty">hostParty</string>
+    <string name="hostParty">Host Party</string>
     <string name="title_activity_host_lobby">HostLobby</string>
-    <string name="title_activity_display_message">My Message</string>
 </resources>
