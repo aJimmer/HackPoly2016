@@ -8,8 +8,11 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 
 public class HackPoly2016Activity extends AppCompatActivity {
+    Button hostParty;
+    Button joinParty;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,6 +20,21 @@ public class HackPoly2016Activity extends AppCompatActivity {
         setContentView(R.layout.activity_hack_poly2016);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        hostParty = (Button)findViewById(R.id.hostParty);
+        joinParty = (Button)findViewById(R.id.joinParty);
+
+        hostParty.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Method that activates host lobby
+            }
+        });
+        joinParty.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Method that activates client lobby
+            }
+        });
 
 
     }

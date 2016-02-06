@@ -14,7 +14,21 @@
 
    <Button
        android:layout_width="250dp"
-       android:layout_height="100dp"
-       android:gravity="center"
-       />
+       android:layout_height="wrap_content"
+       android:text="Host Party"
+       android:id="@+id/hostParty"
+       android:layout_alignParentTop="true"
+       android:layout_centerHorizontal="true"
+       android:layout_marginTop="85dp"
+       android:fontFamily="Arial"/>
+
+   <Button
+       android:layout_width="250dp"
+       android:layout_height="wrap_content"
+       android:text="Join Party"
+       android:id="@+id/joinParty"
+       android:fontFamily="Arial"
+       android:layout_centerVertical="true"
+       android:layout_alignLeft="@+id/hostParty"
+       android:layout_alignStart="@+id/hostParty" />
 </RelativeLayout>
