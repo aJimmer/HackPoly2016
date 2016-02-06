@@ -38,6 +38,11 @@ public class HackPoly2016Activity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //Method that activates client lobby
+                Intent intent = new Intent(v.getContext(), ClientMainActivity.class);
+                //EditText editText = (EditText) findViewById(R.id.edit_message);
+                //String message = editText.getText().toString();
+                //intent.putExtra(EXTRA_MESSAGE, message);
+                startActivity(intent);
 
             }
         });
