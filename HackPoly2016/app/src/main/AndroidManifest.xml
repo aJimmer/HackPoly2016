@@ -21,7 +21,8 @@
         <activity
             android:name=".HostLobby"
             android:label="@string/title_activity_host_lobby"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".host_Lobby"></activity>
     </application>
 
 </manifest>
