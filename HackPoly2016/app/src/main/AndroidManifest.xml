@@ -18,6 +18,24 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ClientMainActivity"
+            android:label="@string/title_activity_client"
+            android:parentActivityName=".HackPoly2016Activity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.inasweaterpoorlyknit.hackpoly2016.HackPoly2016Activity" />
+        </activity>
+        <activity
+            android:name=".HostMainActivity"
+            android:label="@string/title_activity_host"
+            android:parentActivityName=".HackPoly2016Activity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.inasweaterpoorlyknit.hackpoly2016.HackPoly2016Activity" />
+        </activity>
     </application>
 
 </manifest>
