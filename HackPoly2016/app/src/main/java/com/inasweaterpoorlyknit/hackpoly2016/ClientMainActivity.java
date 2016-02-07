@@ -27,6 +27,8 @@ public class ClientMainActivity extends AppCompatActivity {
     SharedPreferences prefs;
     private String returnedVideoID;
     private String returnedVideoTitle;
+    private String ipStr;
+    public TextView hostDisplay;
 
     private static final int SEARCH_CODE = 2;
     @Override
@@ -34,9 +36,11 @@ public class ClientMainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client_main);
 
-        FloatingActionButton searchSong = (FloatingActionButton)findViewById(R.id.searchsong);
+        hostDisplay = (TextView)findViewById(R.id.hostDisplay);
 
-        searchSong.setOnClickListener(new View.OnClickListener() {
+        FloatingActionButton search_button = (FloatingActionButton)findViewById(R.id.search_button);
+
+        search_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(v.getContext(), SearchActivity.class);
@@ -44,22 +48,20 @@ public class ClientMainActivity extends AppCompatActivity {
             }
         });
 
-        sendRequest = (Button)findViewById(R.id.sendRequest);
+        connectToHost = (Button)findViewById(R.id.connectToHost);
 
 
 
-        sendRequest.setOnClickListener(new View.OnClickListener() {
+        connectToHost.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), HostMainActivity.class);
-                EditText editText = (EditText) findViewById(R.id.songBox);
-                songRequest = editText.getText().toString();
-                //intent.putExtra(EXTRA_MESSAGE, message);
+                EditText editText = (EditText) findViewById(R.id.ipBox);
+                ipStr = editText.getText().toString();
 
                 Runnable task = new Runnable() {
                     @Override
                     public void run() {
-                        sendMessage(songRequest);
+                        testConnection();
                     }
                 };
                 Thread newThread = new Thread(task);
@@ -82,12 +84,29 @@ public class ClientMainActivity extends AppCompatActivity {
         startActivityForResult(searchIntent, SEARCH_CODE);
     }
 
+    public void testConnection(){
+        Socket socket = null;
+        try{
+            socket = new Socket(ipStr, 9000);
+            socket.close();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    hostDisplay.setText(ipStr);
+                }
+            });
+        }catch (IOException e){
+            e.printStackTrace();
+            hostDisplay.setText("Could not connect");
+        }
+    }
+
     public void sendMessage(String str){
         //Scanner userInput = new Scanner(System.in);
         //String message;
         Socket socket = null;
         try {
-            socket = new Socket("192.168.43.151", 9000);
+            socket = new Socket(ipStr, 9000);
             //message = userInput.nextLine();
             OutputStream os = socket.getOutputStream();
             PrintStream out = new PrintStream(os);
