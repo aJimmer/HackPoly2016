@@ -27,17 +27,19 @@ public class ClientMainActivity extends AppCompatActivity {
     SharedPreferences prefs;
     private String returnedVideoID;
     private String returnedVideoTitle;
+    public String ipStr;
+    TextView hostDisplay;
 
     private static final int SEARCH_CODE = 2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client_main);
+        ipStr ="";
 
         hostDisplay = (TextView)findViewById(R.id.hostDisplay);
 
-        FloatingActionButton search_button = (FloatingActionButton)findViewById(R.id.search_button);
-
+        FloatingActionButton search_button = (FloatingActionButton)findViewById(R.id.find_button);
         search_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -59,7 +61,7 @@ public class ClientMainActivity extends AppCompatActivity {
                 Runnable task = new Runnable() {
                     @Override
                     public void run() {
-                        testConnection();
+                        //testConnection();
                     }
                 };
                 Thread newThread = new Thread(task);
@@ -67,8 +69,8 @@ public class ClientMainActivity extends AppCompatActivity {
             }
         });
 
-        final FloatingActionButton searchButton = (FloatingActionButton) findViewById(R.id.search_button);
-        searchButton.setOnClickListener(new View.OnClickListener() {
+        final FloatingActionButton findButton = (FloatingActionButton) findViewById(R.id.find_button);
+        findButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 searchSong();
@@ -95,7 +97,7 @@ public class ClientMainActivity extends AppCompatActivity {
             });
         }catch (IOException e){
             e.printStackTrace();
-            hostDisplay.setText("Could not connect");
+            //hostDisplay.setText("Could not connect");
         }
     }
 

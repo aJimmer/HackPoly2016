@@ -10,7 +10,7 @@
         android:name="com.google.android.youtube.player.YouTubePlayerFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="5" />
+        android:layout_weight="4" />
 
     <EditText
         android:id="@+id/song_text"
@@ -25,6 +25,13 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:hint="@string/artist_hint" />
+
+    <Button
+        android:id="@+id/search_button"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:text="Search"/>
 
     <ListView
         android:id="@+id/search_list_view"
