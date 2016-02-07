@@ -38,10 +38,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.inasweaterpoorlyknit.hackpoly2016.HackPoly2016Activity" />
         </activity>
-        <activity
-            android:name=".ServerLobby"
-            android:label="@string/title_activity_server_lobby"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

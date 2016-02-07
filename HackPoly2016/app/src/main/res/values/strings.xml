@@ -7,4 +7,8 @@
     <string name="title_activity_host">HostActivity</string>
     <string name="title_activity_client">ClientActivity</string>
     <string name="title_activity_server_lobby">ServerLobby</string>
+    <string name="title_activity_search">SearchActivity</string>
+    <string name="song_hint">Song</string>
+    <string name="artist_hint">Artist</string>
+    <string name="search_button">Search</string>
 </resources>
