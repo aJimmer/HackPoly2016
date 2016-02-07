@@ -10,7 +10,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.io.BufferedReader;
+import com.google.android.youtube.player.YouTubePlayerFragment;
+
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
@@ -18,14 +19,16 @@ import java.io.PrintStream;
 import java.io.OutputStream;
 
 public class ClientMainActivity extends AppCompatActivity {
-    private static final int SEARCH_CODE = 2;
-    String foundSongID;
     
     public final static String EXTRA_MESSAGE = "com.mycompany.myfirstapp.songrequest";
     public String songRequest;
     Button sendRequest;
     Button connectToHost;
     SharedPreferences prefs;
+    private String returnedVideoID;
+    private String returnedVideoTitle;
+
+    private static final int SEARCH_CODE = 2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,7 +66,7 @@ public class ClientMainActivity extends AppCompatActivity {
 
     public void searchSong() {
         Intent searchIntent = new Intent(this, SearchActivity.class);
-        searchIntent.putExtra("foundSong", foundSongID);
+        searchIntent.putExtra("song", "name");
         startActivityForResult(searchIntent, SEARCH_CODE);
     }
 
@@ -72,7 +75,7 @@ public class ClientMainActivity extends AppCompatActivity {
         //String message;
         Socket socket = null;
         try {
-            socket = new Socket("192.168.43.87", 9000);
+            socket = new Socket("192.168.43.151", 9000);
             //message = userInput.nextLine();
             OutputStream os = socket.getOutputStream();
             PrintStream out = new PrintStream(os);
@@ -81,6 +84,31 @@ public class ClientMainActivity extends AppCompatActivity {
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // Make sure the request was successful
+        if (resultCode == RESULT_OK) {
+            // Check which request we're responding to
+            if (requestCode == SEARCH_CODE) {
+                if(data.getExtras().containsKey("Song ID")){
+                    returnedVideoID = data.getStringExtra("Song ID");
+                    returnedVideoTitle = data.getStringExtra("Song Title");
+                    Runnable task = new Runnable() {
+                        @Override
+                        public void run() {
+                            sendMessage(returnedVideoID);
+                            //sendMessage(returnedVideoTitle);
+                        }
+                    };
+                    Thread newThread = new Thread(task);
+                    newThread.start();
+                }
+            }
         }
     }
 
