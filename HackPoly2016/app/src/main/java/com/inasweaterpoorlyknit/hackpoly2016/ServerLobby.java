@@ -5,8 +5,16 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
+
+import com.google.android.youtube.player.YouTubeInitializationResult;
+import com.google.android.youtube.player.YouTubePlayer;
+import com.google.android.youtube.player.YouTubePlayerFragment;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,16 +23,48 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 
-public class ServerLobby extends AppCompatActivity {
+public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnInitializedListener {
+
 
     public String clientString = "test";
+    public ListView listView;
+    public ArrayList<String> songId;
+    public ArrayList<String> songNames;
+    public static YouTubePlayer player;
+    public int index;
+    public static long songDuration;
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_server_lobby);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        listView = (ListView)findViewById(R.id.serverText);
+        songId = new ArrayList<>();
+        songNames = new ArrayList<>();
+        songId.add("AUChk0lxF44");
+        songNames.add("Victorios");
+        songId.add("R03cqGg40GU");
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, android.R.id.text1, songNames);
+        listView.setAdapter(adapter);
+        index = 0;
+
+        /*Button nextBtn = (Button)findViewById(R.id.nextbtn);
+        nextBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                player.next();
+            }
+        });*/
+
+
+        YouTubePlayerFragment youTubePlayerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R. id.player_fragment);
+        youTubePlayerFragment.initialize(DeveloperKey.ANDROID_DEVELOPER_KEY, this);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -34,7 +74,7 @@ public class ServerLobby extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-        TextView textView = (TextView)findViewById(R.id.serverText);
+        //TextView textView = (TextView)findViewById(R.id.serverText);
         Runnable serverThread = new Runnable() {
             @Override
             public void run() {
@@ -46,18 +86,25 @@ public class ServerLobby extends AppCompatActivity {
                     {
                         Socket socket = serverSocket.accept();
 
+
                         InputStream in = socket.getInputStream();
                         InputStreamReader read = new InputStreamReader(in, "UTF-8");
                         BufferedReader br = new BufferedReader(read);
-                        clientString = br.readLine();
+                        String yCode = br.readLine();
+                        //String songTitle = br.readLine();
+                        songId.add(yCode);
+                        //songNames.add(songTitle);
+
+                        Log.d(yCode, "from client");
+                        //Log.d(songTitle, "song Name");
                         //updateText(clientString);
-                        runOnUiThread(new Runnable() {
+                        /*runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 TextView textView = (TextView) findViewById(R.id.serverText);
                                 textView.setText(clientString);
                             }
-                        });
+                        });*/
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -65,14 +112,74 @@ public class ServerLobby extends AppCompatActivity {
             }
 
         };
+
+
         Thread thread = new Thread(serverThread);
         thread.start();
 
+
+
         //textView.setText(clientString);
     }
-    public void updateText(String msg){
+    /*public void updateText(String msg){
         TextView textView = (TextView)findViewById(R.id.serverText);
         textView.setText(clientString);
+    }*/
+
+    @Override
+    public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
+        if (!b) {
+           youTubePlayer.loadVideos(songId);
+            this.player = youTubePlayer;
+            player.setShowFullscreenButton(false);
+
+            player.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
+
+                @Override
+                public void onLoading() {
+
+                }
+
+                @Override
+                public void onLoaded(String s) {
+
+                }
+
+                @Override
+                public void onAdStarted() {
+
+                }
+
+                @Override
+                public void onVideoStarted() {
+
+                }
+
+                @Override
+                public void onVideoEnded() {
+                    if(songId.size()!=0) {
+                        String id = songId.remove(0);
+                        player.loadVideo(id);
+                    }else{
+                        Log.d("LIST IS EMPTY", "serverMSG");
+                    }
+
+                }
+
+                @Override
+                public void onError(YouTubePlayer.ErrorReason errorReason) {
+
+                }
+            });
+
+
+        }
     }
 
+
+
+    @Override
+    public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
+
+    }
 }

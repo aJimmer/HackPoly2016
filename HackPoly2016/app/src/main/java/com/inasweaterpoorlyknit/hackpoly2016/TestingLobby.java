@@ -1,4 +1,4 @@
-package com.inasweaterpoorlyknit.hackpoly2016;
+/*package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
@@ -20,8 +20,6 @@ public class TestingLobby extends AppCompatActivity implements
     private static final int RECOVERY_DIALOG_REQUEST = 1;
 
     public YouTubePlayer player;
-
-    private static final int SEARCH_CODE = 2;
 
     ArrayList<String> playlistSongIDs = new ArrayList<>();
 
@@ -110,4 +108,4 @@ public class TestingLobby extends AppCompatActivity implements
     protected void onDestroy() {
         super.onDestroy();
     }
-}
+}*/
