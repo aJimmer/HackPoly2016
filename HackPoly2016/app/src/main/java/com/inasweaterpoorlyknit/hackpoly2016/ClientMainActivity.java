@@ -1,6 +1,7 @@
 package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.content.Intent;
+import android.support.design.widget.FloatingActionButton;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,6 +18,9 @@ import java.io.PrintStream;
 import java.io.OutputStream;
 
 public class ClientMainActivity extends AppCompatActivity {
+    private static final int SEARCH_CODE = 2;
+    String foundSongID;
+    
     public final static String EXTRA_MESSAGE = "com.mycompany.myfirstapp.songrequest";
     public String songRequest;
     Button sendRequest;
@@ -24,39 +28,10 @@ public class ClientMainActivity extends AppCompatActivity {
     SharedPreferences prefs;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //initialize shared pref. folder to save host date
-        /*prefs = getSharedPreferences("HostData", MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString("host_ip", "null");
-        editor.apply();
-
-
-
-
-        TextView hostInfo = (TextView) findViewById(R.id.hostDisplay);
-        hostInfo.setText(prefs.getString("host_ip", "none set"));*/
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client_main);
-        //trying to get code to work on enter key
-        /*procRequest = (EditText) findViewById(R.id.songBox);
 
         sendRequest = (Button)findViewById(R.id.sendRequest);
-
-        connectToHost = (Button) findViewById(R.id.connectToHost);
-
-        connectToHost.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), HostList.class);
-                startActivity(intent);
-
-
-
-            }
-        });*/
-
-        sendRequest = (Button) findViewById(R.id.sendRequest);
 
         sendRequest.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,6 +51,20 @@ public class ClientMainActivity extends AppCompatActivity {
                 newThread.start();
             }
         });
+
+        final FloatingActionButton searchButton = (FloatingActionButton) findViewById(R.id.search_button);
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                searchSong();
+            }
+        });
+    }
+
+    public void searchSong() {
+        Intent searchIntent = new Intent(this, SearchActivity.class);
+        searchIntent.putExtra("foundSong", foundSongID);
+        startActivityForResult(searchIntent, SEARCH_CODE);
     }
 
     public void sendMessage(String str){
