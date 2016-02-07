@@ -28,7 +28,19 @@ public class ClientMainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client_main);
 
+        FloatingActionButton searchSong = (FloatingActionButton)findViewById(R.id.searchsong);
+
+        searchSong.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(v.getContext(), SearchActivity.class);
+                startActivity(intent);
+            }
+        });
+
         sendRequest = (Button)findViewById(R.id.sendRequest);
+
+
 
         sendRequest.setOnClickListener(new View.OnClickListener() {
             @Override
