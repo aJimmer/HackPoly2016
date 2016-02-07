@@ -8,11 +8,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.content.Intent;
-import android.widget.EditText;
 
 public class HackPoly2016Activity extends AppCompatActivity {
     Button hostParty;
     Button joinParty;
+    Button testLobby;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,6 +21,7 @@ public class HackPoly2016Activity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         hostParty = (Button)findViewById(R.id.hostParty);
         joinParty = (Button)findViewById(R.id.joinParty);
+        testLobby = (Button)findViewById(R.id.testLobby);
 
         hostParty.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -42,7 +43,14 @@ public class HackPoly2016Activity extends AppCompatActivity {
                 //String message = editText.getText().toString();
                 //intent.putExtra(EXTRA_MESSAGE, message);
                 startActivity(intent);
-
+            }
+        });
+        testLobby.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Method that activates test lobby
+                Intent intent = new Intent(v.getContext(), TestingLobby.class);
+                startActivity(intent);
             }
         });
 

@@ -15,6 +15,7 @@ import com.google.api.services.youtube.model.SearchResult;
 
 import java.io.IOException;
 //import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 //import java.util.Properties;
 
@@ -23,23 +24,12 @@ public class Search {
     private static final String DEVELOPER_KEY_FILENAME = "DeveloperKey.java";
 
     // number of videos we want the search function to return
-    private static final long NUMBER_OF_VIDEOS_TO_RETURN = 10;
+    public static final long NUMBER_OF_VIDEOS_TO_RETURN = 10;
 
     // global instance of a YouTube object
     private static YouTube youtube;
 
-    public static String Search(String query){
-        /*Properties properties = new Properties();
-        try{
-            InputStream in = Search.class.getResourceAsStream("/" + DEVELOPER_KEY_FILENAME);
-            properties.load(in);
-        } catch (IOException e){
-            System.err.println("An error occured in reading " + DEVELOPER_KEY_FILENAME + ": "
-                    + e.getCause() + " : " + e.getMessage());
-            System.exit(1);
-        }
-        */
-
+    public static List<SearchResult> Search(String query){
         try {
             youtube = new YouTube.Builder(new NetHttpTransport(), new JacksonFactory(), new HttpRequestInitializer() {
                 @Override
@@ -54,14 +44,14 @@ public class Search {
             search.setKey(DeveloperKey.BROWSER_DEVELOPER_KEY);
             search.setQ(query);
             search.setType("video");
-            search.setFields("items(id)");
+            search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url)");
             search.setMaxResults(NUMBER_OF_VIDEOS_TO_RETURN);
 
             // call api
             SearchListResponse searchResponse = search.execute();
             List<SearchResult> searchResultList = searchResponse.getItems();
             if(searchResultList != null){
-                return searchResultList.get(0).getId().getVideoId();
+                return searchResultList;
             }
 
         } catch (GoogleJsonResponseException e) {
