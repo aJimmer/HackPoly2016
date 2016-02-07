@@ -13,7 +13,6 @@ import android.widget.EditText;
 public class HackPoly2016Activity extends AppCompatActivity {
     Button hostParty;
     Button joinParty;
-    public final static String EXTRA_MESSAGE = "com.inasweaterpoorlyknit.hackpoly2016.MESSAGE";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,7 +26,7 @@ public class HackPoly2016Activity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //Method that activates host lobby
-                Intent intent = new Intent(v.getContext(), HostMainActivity.class);
+                Intent intent = new Intent(v.getContext(), ServerLobby.class);
                 //EditText editText = (EditText) findViewById(R.id.edit_message);
                 //String message = editText.getText().toString();
                 //intent.putExtra(EXTRA_MESSAGE, message);
