@@ -33,8 +33,8 @@ public class TestingLobby extends AppCompatActivity implements
     }
 
     public void initialize(){
-        playerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.playlist_fragment);
-        playerFragment.initialize(DeveloperKey.ANDROID_DEVELOPER_KEY, this);
+        //playerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.playlist_fragment);
+        //playerFragment.initialize(DeveloperKey.ANDROID_DEVELOPER_KEY, this);
 
         final FloatingActionButton searchButton = (FloatingActionButton) findViewById(R.id.search_button);
         searchButton.setOnClickListener(new View.OnClickListener() {
@@ -49,7 +49,7 @@ public class TestingLobby extends AppCompatActivity implements
     public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
         if(!b){
             this.player = youTubePlayer;
-            player.loadVideo("vgSn0SbQJQI");
+                player.loadVideo("19GDcOuXqHo");
         }
     }
 
@@ -78,7 +78,9 @@ public class TestingLobby extends AppCompatActivity implements
             if (requestCode == SEARCH_CODE) {
                 if(data.getExtras().containsKey("Song ID")){
                     String returnedVideoString = data.getStringExtra("Song ID");
-                    playlistSongIDs.add(returnedVideoString);
+                    //playlistSongIDs.add(returnedVideoString);
+                    playerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.playlist_fragment);
+                    playerFragment.initialize(DeveloperKey.ANDROID_DEVELOPER_KEY, this);
                 }
             }
         }
