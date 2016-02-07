@@ -13,7 +13,6 @@ import android.widget.EditText;
 public class HackPoly2016Activity extends AppCompatActivity {
     Button hostParty;
     Button joinParty;
-    public final static String EXTRA_MESSAGE = "com.inasweaterpoorlyknit.hackpoly2016.MESSAGE";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
