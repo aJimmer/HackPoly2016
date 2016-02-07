@@ -1,13 +1,12 @@
 package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.ListView;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
 import android.widget.TextView;
-
-import com.google.android.youtube.player.YouTubeInitializationResult;
-import com.google.android.youtube.player.YouTubePlayer;
-import com.google.android.youtube.player.YouTubePlayerFragment;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,24 +15,26 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 
-public class HostMainActivity extends AppCompatActivity implements YouTubePlayer.OnInitializedListener{
-    public static String API_Key = "AIzaSyCOX5sjc9q9FK3eHwBipWqNR1WRfr7maUw";
-    public String clientString;
-    public ArrayList<String> list;
-    public ListView listView;
-    public Thread thread;
+public class ServerLobby extends AppCompatActivity {
 
+    public String clientString = "test";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_host_lobby);
-        clientString = "";
-        list = new ArrayList<>();
-        list.add("0");
-        listView = (ListView)findViewById(R.id.listView);
-        TextView textView =(TextView) findViewById(R.id.hostLobby);
+        setContentView(R.layout.activity_server_lobby);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
+        TextView textView = (TextView)findViewById(R.id.serverText);
         Runnable serverThread = new Runnable() {
             @Override
             public void run() {
@@ -63,25 +64,6 @@ public class HostMainActivity extends AppCompatActivity implements YouTubePlayer
         thread.start();
 
         textView.setText(clientString);
-
-        YouTubePlayerFragment youTubePlayerFragment =
-                (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.player_fragment);
-        youTubePlayerFragment.initialize(API_Key, this);
-
-
-    }
-
-    @Override
-    public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
-
-    }
-
-    @Override
-    public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
-
-    }
-    public void onBackPressed()
-    {
     }
 
 }
