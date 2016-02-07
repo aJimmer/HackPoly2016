@@ -41,10 +41,6 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         songId = new ArrayList<>();
         songNames = new ArrayList<>();
         songId.add("AUChk0lxF44");
-        songNames.add("Victorios");
-        songId.add("R03cqGg40GU");
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, android.R.id.text1, songNames);
-        listView.setAdapter(adapter);
         index = 0;
 
         YouTubePlayerFragment youTubePlayerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.player_fragment);
@@ -77,9 +73,11 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                         String yCode = br.readLine();
                         String songTitle = br.readLine();
                         songId.add(yCode);
-                        if(!player.isPlaying()){
-                            player.loadVideo(songId.get(0));
-                            songId.remove(0);
+                        if(player != null) {
+                            if (!player.isPlaying()) {
+                                player.loadVideo(songId.get(0));
+                                songId.remove(0);
+                            }
                         }
                         Log.d(yCode, "from client");
                         Log.d(songTitle, "song Name");
