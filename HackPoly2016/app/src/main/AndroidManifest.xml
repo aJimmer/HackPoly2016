@@ -57,6 +57,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.inasweaterpoorlyknit.hackpoly2016.HackPoly2016Activity" />
         </activity>
+        <activity
+            android:name=".ServerLobby"
+            android:label="@string/title_activity_server_lobby"
+            android:parentActivityName=".HackPoly2016Activity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.inasweaterpoorlyknit.hackpoly2016.HackPoly2016Activity" />
+        </activity>
     </application>
 
 </manifest>

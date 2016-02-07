@@ -72,8 +72,11 @@ public class HostMainActivity extends AppCompatActivity implements YouTubePlayer
     }
 
     @Override
-    public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
-
+    public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer player,
+                                        boolean wasRestored) {
+        if (!wasRestored) {
+            player.cueVideo("nCgQDjiotG0");
+        }
     }
 
     @Override
