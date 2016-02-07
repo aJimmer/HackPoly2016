@@ -1,22 +1,65 @@
 package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.View;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+
 public class HostMainActivity extends AppCompatActivity implements YouTubePlayer.OnInitializedListener{
     public static String API_Key = "AIzaSyCOX5sjc9q9FK3eHwBipWqNR1WRfr7maUw";
+    public String clientString;
+    public ArrayList<String> list;
+    public ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_host__lobby);
+        setContentView(R.layout.activity_host_lobby);
+        clientString = "";
+        list = new ArrayList<>();
+        list.add("0");
+        listView = (ListView)findViewById(R.id.listView);
+        TextView textView =(TextView) findViewById(R.id.hostLobby);
+        Runnable serverThread = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    ServerSocket serverSocket = new ServerSocket(9000);
+                    while(true)
+                    {
+                        Socket socket = serverSocket.accept();
+                        InputStream in = socket.getInputStream();
+                        InputStreamReader read = new InputStreamReader(in, "UTF-8");
+                        BufferedReader br = new BufferedReader(read);
+                        clientString = br.readLine();
+
+
+
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        };
+        Thread thread = new Thread(serverThread);
+        thread.start();
+        while (thread.isAlive())
+        {
+
+        }
+        textView.setText(clientString);
 
 
     }
