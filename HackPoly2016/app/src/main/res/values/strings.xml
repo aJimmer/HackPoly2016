@@ -11,4 +11,5 @@
     <string name="song_hint">Song</string>
     <string name="artist_hint">Artist</string>
     <string name="search_button">Search</string>
+    <string name="search_activity">Search Activity</string>
 </resources>
