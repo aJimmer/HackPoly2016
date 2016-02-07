@@ -12,8 +12,6 @@
     tools:context="com.inasweaterpoorlyknit.hackpoly2016.ServerLobby"
     tools:showIn="@layout/activity_server_lobby">
 
-<<<<<<< HEAD
-=======
     <fragment
         android:id="@+id/player_fragment"
         android:name="com.google.android.youtube.player.YouTubePlayerFragment"
@@ -21,7 +19,6 @@
         android:layout_height="match_parent"
         android:layout_weight="2"/>
 
->>>>>>> chrisBranch
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

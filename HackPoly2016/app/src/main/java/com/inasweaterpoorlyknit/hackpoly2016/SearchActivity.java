@@ -107,6 +107,7 @@ public class SearchActivity extends AppCompatActivity implements
                 String msg = intent.getStringExtra("song");
                 if (msg.contentEquals("name")) {
                     intent.putExtra("Song ID", searchResults.get(playingVideoIndex).getId().getVideoId());
+                    intent.putExtra("Song Title", resultTitles.get(playingVideoIndex));
                     setResult(RESULT_OK, intent);
                     finish();
                 }

@@ -44,7 +44,7 @@ public class HackPoly2016Activity extends AppCompatActivity {
                 //intent.putExtra(EXTRA_MESSAGE, message);
                 startActivity(intent);
             }
-        });
+        });/*
         testLobby.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -52,7 +52,7 @@ public class HackPoly2016Activity extends AppCompatActivity {
                 Intent intent = new Intent(v.getContext(), TestingLobby.class);
                 startActivity(intent);
             }
-        });
+        });*/
 
 
     }
