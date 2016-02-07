@@ -12,4 +12,7 @@
     <string name="artist_hint">Artist</string>
     <string name="search_button">Search</string>
     <string name="search_activity">Search Activity</string>
+    <string name="test_lobby">Test Lobby</string>
+    <string name="test_lobby_activity">Test Lobby</string>
+    <string name="testing_lobby_activity">Testing_Lobby</string>
 </resources>

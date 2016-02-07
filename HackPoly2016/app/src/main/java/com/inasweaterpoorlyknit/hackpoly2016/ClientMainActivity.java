@@ -8,15 +8,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
 import java.io.PrintStream;
 import java.io.OutputStream;
 public class ClientMainActivity extends AppCompatActivity {
-    private static final int SEARCH_CODE = 2;
-    String foundSongID;
     
     public final static String EXTRA_MESSAGE = "com.mycompany.myfirstapp.songrequest";
     public String songRequest;
@@ -46,20 +43,6 @@ public class ClientMainActivity extends AppCompatActivity {
                 newThread.start();
             }
         });
-
-        final FloatingActionButton searchButton = (FloatingActionButton) findViewById(R.id.search_button);
-        searchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                searchSong();
-            }
-        });
-    }
-
-    public void searchSong() {
-        Intent searchIntent = new Intent(this, SearchActivity.class);
-        searchIntent.putExtra("foundSong", foundSongID);
-        startActivityForResult(searchIntent, SEARCH_CODE);
     }
 
     public void sendMessage(String str){
