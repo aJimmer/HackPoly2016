@@ -2,6 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.inasweaterpoorlyknit.hackpoly2016">
 
+    <uses-permission
+        android:name="android.permission.ACCESS_WIFI_STATE"
+        android:required="true" />
+    <uses-permission
+        android:name="android.permission.CHANGE_WIFI_STATE"
+        android:required="true" />
+    <uses-permission
+        android:name="android.permission.INTERNET"
+        android:required="true" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -35,6 +45,19 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.inasweaterpoorlyknit.hackpoly2016.HackPoly2016Activity" />
+        </activity>
+        <activity
+            android:name=".ServerLobby"
+            android:label="@string/title_activity_server_lobby"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".HostList"
+            android:label="@string/title_activity_host_list"
+            android:parentActivityName=".ClientMainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.inasweaterpoorlyknit.hackpoly2016.ClientMainActivity" />
         </activity>
     </application>
 
