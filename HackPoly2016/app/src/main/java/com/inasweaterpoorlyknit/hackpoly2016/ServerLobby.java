@@ -27,23 +27,16 @@ import java.util.ArrayList;
 
 public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnInitializedListener {
 
-
-    public String clientString = "test";
     public ListView listView;
     public ArrayList<String> songId;
     public ArrayList<String> songNames;
     public static YouTubePlayer player;
     public int index;
-    public static long songDuration;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_server_lobby);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
         listView = (ListView)findViewById(R.id.serverText);
         songId = new ArrayList<>();
         songNames = new ArrayList<>();
@@ -54,16 +47,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         listView.setAdapter(adapter);
         index = 0;
 
-        /*Button nextBtn = (Button)findViewById(R.id.nextbtn);
-        nextBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                player.next();
-            }
-        });*/
-
-
-        YouTubePlayerFragment youTubePlayerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R. id.player_fragment);
+        YouTubePlayerFragment youTubePlayerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.player_fragment);
         youTubePlayerFragment.initialize(DeveloperKey.ANDROID_DEVELOPER_KEY, this);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -91,18 +75,19 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                         InputStreamReader read = new InputStreamReader(in, "UTF-8");
                         BufferedReader br = new BufferedReader(read);
                         String yCode = br.readLine();
-                        //String songTitle = br.readLine();
+                        String songTitle = br.readLine();
                         songId.add(yCode);
-                        //songNames.add(songTitle);
-
+                        if(!player.isPlaying()){
+                            player.loadVideo(songId.get(0));
+                            songId.remove(0);
+                        }
                         Log.d(yCode, "from client");
-                        //Log.d(songTitle, "song Name");
+                        Log.d(songTitle, "song Name");
                         //updateText(clientString);
                         /*runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                TextView textView = (TextView) findViewById(R.id.serverText);
-                                textView.setText(clientString);
+                                updateListView();
                             }
                         });*/
                     }
@@ -117,8 +102,6 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         Thread thread = new Thread(serverThread);
         thread.start();
 
-
-
         //textView.setText(clientString);
     }
     /*public void updateText(String msg){
@@ -129,7 +112,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     @Override
     public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
         if (!b) {
-           youTubePlayer.loadVideos(songId);
+            //youTubePlayer.loadVideos(songId);
             this.player = youTubePlayer;
             player.setShowFullscreenButton(false);
 
@@ -181,5 +164,10 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     @Override
     public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
 
+    }
+
+    public void updateListView(){
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, android.R.id.text1, songNames);
+        listView.setAdapter(adapter);
     }
 }

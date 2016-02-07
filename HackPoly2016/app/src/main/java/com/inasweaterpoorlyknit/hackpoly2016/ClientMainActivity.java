@@ -27,8 +27,6 @@ public class ClientMainActivity extends AppCompatActivity {
     SharedPreferences prefs;
     private String returnedVideoID;
     private String returnedVideoTitle;
-    private String ipStr;
-    public TextView hostDisplay;
 
     private static final int SEARCH_CODE = 2;
     @Override
