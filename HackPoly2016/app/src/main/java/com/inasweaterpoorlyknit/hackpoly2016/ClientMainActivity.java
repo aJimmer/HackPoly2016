@@ -48,19 +48,17 @@ public class ClientMainActivity extends AppCompatActivity {
     public void sendMessage(String str){
         Scanner userInput = new Scanner(System.in);
         String message;
-        while (true) {
-            Socket socket = null;
-            try {
-                socket = new Socket("192.168.40.119", 9000);
-                message = userInput.nextLine();
-                OutputStream os = socket.getOutputStream();
-                PrintStream out = new PrintStream(os);
-                System.out.println("Client >> " + message);
-                out.println(message);
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        Socket socket = null;
+        try {
+            socket = new Socket("192.168.40.119", 9000);
+            message = userInput.nextLine();
+            OutputStream os = socket.getOutputStream();
+            PrintStream out = new PrintStream(os);
+            System.out.println("Client >> " + message);
+            out.println(message);
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
