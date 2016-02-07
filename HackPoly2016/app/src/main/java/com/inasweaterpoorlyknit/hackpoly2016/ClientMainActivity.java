@@ -55,7 +55,7 @@ public class ClientMainActivity extends AppCompatActivity {
         //String message;
         Socket socket = null;
         try {
-            socket = new Socket("192.168.43.87", 9000);
+            socket = new Socket("192.168.43.151", 9000);
             //message = userInput.nextLine();
             OutputStream os = socket.getOutputStream();
             PrintStream out = new PrintStream(os);
