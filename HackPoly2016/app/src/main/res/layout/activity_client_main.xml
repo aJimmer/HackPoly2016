@@ -34,7 +34,7 @@
         android:layout_height="wrap_content"
         android:text="Send Request"
         android:id="@+id/sendRequest"
-        android:layout_below="@+id/songBox"
+        android:layout_above="@+id/textView"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
