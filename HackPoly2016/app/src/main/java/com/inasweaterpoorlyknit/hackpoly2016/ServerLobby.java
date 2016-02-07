@@ -50,9 +50,14 @@ public class ServerLobby extends AppCompatActivity {
                         InputStreamReader read = new InputStreamReader(in, "UTF-8");
                         BufferedReader br = new BufferedReader(read);
                         clientString = br.readLine();
-
-
-
+                        //updateText(clientString);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                TextView textView = (TextView) findViewById(R.id.serverText);
+                                textView.setText(clientString);
+                            }
+                        });
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -63,6 +68,10 @@ public class ServerLobby extends AppCompatActivity {
         Thread thread = new Thread(serverThread);
         thread.start();
 
+        //textView.setText(clientString);
+    }
+    public void updateText(String msg){
+        TextView textView = (TextView)findViewById(R.id.serverText);
         textView.setText(clientString);
     }
 
