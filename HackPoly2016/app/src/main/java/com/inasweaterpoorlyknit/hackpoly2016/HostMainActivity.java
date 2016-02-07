@@ -15,5 +15,5 @@ public class HostMainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_host__lobby);
     }
     //change test
-
+    //master branch edit
 }
