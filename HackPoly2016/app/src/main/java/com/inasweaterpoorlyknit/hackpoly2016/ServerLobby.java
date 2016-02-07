@@ -44,7 +44,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         setContentView(R.layout.activity_server_lobby);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        listView = (ListView)findViewById(R.id.SongList);
+        listView = (ListView)findViewById(R.id.serverText);
         songId = new ArrayList<>();
         songNames = new ArrayList<>();
         songId.add("AUChk0lxF44");
