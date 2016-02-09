@@ -24,45 +24,60 @@ import java.util.List;
 public class SearchActivity extends AppCompatActivity implements
         YouTubePlayer.OnInitializedListener{
 
-    private YouTubePlayerFragment playerFragment;
-    private static final int RECOVERY_DIALOG_REQUEST = 1;
+    private YouTubePlayerFragment playerFragment; // youtube player fragment to play searched videos
+    private static final int RECOVERY_DIALOG_REQUEST = 1; // used for youtube's onInitializedFailure
 
-    public YouTubePlayer player;
+    public YouTubePlayer player; // the player initialized by playerFragment; object that controls the player
 
-    private Object lock = new Object();
-    public List<SearchResult> searchResults;
-    public ArrayList<String> resultTitles = new ArrayList<>();
-
-    private int playingVideoIndex;
+    private Object lock = new Object(); // a lock object used for synchronization with task
+    public List<SearchResult> searchResults; // list to hold the search results from youtube's search api
+    public ArrayList<String> resultTitles = new ArrayList<>();  // list to hold titles from the search
+                                                                // used to update listView
+    private int playingVideoIndex;  // index of the video being played
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
 
+        // set playing video to -1, to check if a search ever occurred
+        playingVideoIndex = -1;
+
+        // accessing our player fragment through the contentView
+        // setting up the youtube player through the playerFragment
         playerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.search_player_fragment);
         playerFragment.initialize(DeveloperKey.ANDROID_DEVELOPER_KEY, this);
 
-        final Button searchButton = (Button) findViewById(R.id.search_button);
-        final EditText artistEditText = (EditText) findViewById(R.id.artist_text);
-        final EditText songEditText = (EditText) findViewById(R.id.song_text);
-        final ListView searchListView = (ListView) findViewById(R.id.search_list_view);
-        final FloatingActionButton returnButton = (FloatingActionButton) findViewById(R.id.return_button);
+        // Accessing all of our components
+        final Button searchButton = (Button) findViewById(R.id.search_button); // button to get YouTube search results
+        final EditText songEditText = (EditText) findViewById(R.id.song_text); // editText for getting song from user
+        final EditText artistEditText = (EditText) findViewById(R.id.artist_text); // editText for getting artist from user
+        final ListView searchListView = (ListView) findViewById(R.id.search_list_view); // listView to show search results
+        final FloatingActionButton returnButton = (FloatingActionButton) findViewById(R.id.return_button); // upload button to send song to host
 
+        // the YouTube search functionality
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // NOTE: not sure if we actually need this task running in a thread
                 Runnable sendTask = new Runnable() {
                     @Override
                     public void run() {
+                        // concatenate the artist and song names from the user
+                        // NOTE: Maybe not have it be two things. Unnecessary but might look better?
                         String query = artistEditText.getText().toString() + " " + songEditText.getText().toString();
 
+                        // this synchronized lock ensures we don't display the search results until they are found
+                        // NOTE: may be solved if we remove the task all together
                         synchronized (lock) {
+                            // calling our search function to access YouTube's api and return the search results
                             searchResults = Search.Search(query);
                                     //.get(0).getId().getVideoId();
                                     //.getSnippet().getThumbnails().getStandard();
+                            // tell the waiting object to continue
                             lock.notify();
                         }
+                        // debug info to ensure our search was successful
                         if(searchResults.get(0).getId().getVideoId() != null){
                             Log.d("newSongID: ", "new song id is " + searchResults.get(0).getId().getVideoId());
                         } else {
@@ -70,18 +85,29 @@ public class SearchActivity extends AppCompatActivity implements
                         }
                     }
                 };
+
+                // creating a thread to search for the videos
                 Thread threadObj = new Thread(sendTask);
                 threadObj.start();
+
+                // ensuring that we do not access the searchResults until the search has finished
                 synchronized(lock) {
                     try {
+                        // have the object wait until it is notified
                         lock.wait();
+
+                        // play the first video that is returned in the searchResults
                         player.loadVideo(searchResults.get(0).getId().getVideoId());
-                        playingVideoIndex = 0;
-                        if(searchResults != null) {
-                            resultTitles.clear();
+                        playingVideoIndex = 0;  // set our play video index to the first video
+                        if(searchResults != null) { // if there are results to return
+                            resultTitles.clear();  // first clear the result Titles
+                            // for each searchResult, set it in the result Titles
                             for (SearchResult searchResult : searchResults) {
                                 resultTitles.add(searchResult.getSnippet().getTitle());
                             }
+                            // create a String adapter and fill it with the searchResults
+                            // NOTE: May be able to keep a persistent adapter and update it accordingly
+                            // OR we might just pass setAdapter an anonymous ArrayAdapter
                             ArrayAdapter<String> adapter = new ArrayAdapter<String>(view.getContext(), android.R.layout.simple_list_item_1, android.R.id.text1, resultTitles);
                             searchListView.setAdapter(adapter);
                         }
@@ -92,6 +118,8 @@ public class SearchActivity extends AppCompatActivity implements
             }
         });
 
+        // if an item in the list is clicked, get it's current index in the listView, play the song
+        // and set our playingVideoIndex to the correct index
         searchListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -100,21 +128,36 @@ public class SearchActivity extends AppCompatActivity implements
             }
         });
 
+        // button to return to our ClientMainActivity
+        // it returns the song ID and the song title through putExtra
         returnButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = getIntent();
-                String msg = intent.getStringExtra("song");
-                if (msg.contentEquals("name")) {
-                    intent.putExtra("Song ID", searchResults.get(playingVideoIndex).getId().getVideoId());
-                    intent.putExtra("Song Title", resultTitles.get(playingVideoIndex));
-                    setResult(RESULT_OK, intent);
-                    finish();
+                // only do something if the user actually searched for a video
+                if (playingVideoIndex >= 0) {
+                    // get the intent that SearchActivity was started with
+                    Intent intent = getIntent();
+                    // this line and the next are ensuring that we were called by ClientMainActivity
+                    // by checking the contents of the intent
+                    // NOTE: may be removed if we don't care?
+                    String msg = intent.getStringExtra("song");
+                    if (msg.contentEquals("name")) {
+                        // put the song ID and song title into the intent
+                        intent.putExtra("Song ID", searchResults.get(playingVideoIndex).getId().getVideoId());
+                        intent.putExtra("Song Title", resultTitles.get(playingVideoIndex));
+                        // set the result to be returned, use RESULT_OK to ensure that everything went as planned and return
+                        setResult(RESULT_OK, intent);
+                        finish();
+                    }
+                } else {
+                    // inform user they must search for a video first
+                    Toast.makeText(getApplicationContext(), "Search for a video first.", Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
 
+    // only initialized the player if one was successfully retrieved
     @Override
     public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
         if(!b){
@@ -122,6 +165,7 @@ public class SearchActivity extends AppCompatActivity implements
         }
     }
 
+    // handle error if player doesn't not initialize successfully
     @Override
     public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
         if(youTubeInitializationResult.isUserRecoverableError()){
@@ -132,6 +176,7 @@ public class SearchActivity extends AppCompatActivity implements
         }
     }
 
+    // overriding onActivityResult and not changing it...
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
