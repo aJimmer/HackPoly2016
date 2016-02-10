@@ -14,23 +14,20 @@ import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 
 import java.io.IOException;
-//import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
-//import java.util.Properties;
 
 public class Search {
-    // variable holding the filename of the file that contains the developer's API key
-    private static final String DEVELOPER_KEY_FILENAME = "DeveloperKey.java";
-
     // number of videos we want the search function to return
     public static final long NUMBER_OF_VIDEOS_TO_RETURN = 10;
 
     // global instance of a YouTube object
     private static YouTube youtube;
 
+    // list of SearchResult objects to hold the search results
     public static List<SearchResult> Search(String query){
+        // try to build a youtube object
         try {
+
             youtube = new YouTube.Builder(new NetHttpTransport(), new JacksonFactory(), new HttpRequestInitializer() {
                 @Override
                 public void initialize(HttpRequest request) throws IOException {
@@ -41,6 +38,7 @@ public class Search {
             // Define the API request for the search results
             YouTube.Search.List search = youtube.search().list("id,snippet");
 
+            // using a browser key to allow youtube search functionality
             search.setKey(DeveloperKey.BROWSER_DEVELOPER_KEY);
             search.setQ(query);
             search.setType("video");
