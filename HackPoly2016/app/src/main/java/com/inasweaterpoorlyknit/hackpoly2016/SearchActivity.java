@@ -1,16 +1,21 @@
 package com.inasweaterpoorlyknit.hackpoly2016;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.youtube.player.YouTubeInitializationResult;
@@ -55,12 +60,28 @@ public class SearchActivity extends AppCompatActivity implements
         final ListView searchListView = (ListView) findViewById(R.id.search_list_view); // listView to show search results
         final FloatingActionButton returnButton = (FloatingActionButton) findViewById(R.id.return_button); // upload button to send song to host
 
+        // input method manager to control when the keyboard is active
+        final InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        // if the user says they are done editing, search for results
+        artistEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int actionID, KeyEvent keyEvent) {
+                if(actionID == EditorInfo.IME_ACTION_DONE){
+                    searchButton.performClick();
+                    inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                    return true;
+                }
+                return false;
+            }
+        });
+
         // the YouTube search functionality
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // NOTE: not sure if we actually need this task running in a thread
-                Runnable sendTask = new Runnable() {
+                // tast for thread, so we can access networks outside of the main thread
+                Runnable searchTask = new Runnable() {
                     @Override
                     public void run() {
                         // concatenate the artist and song names from the user
@@ -68,7 +89,6 @@ public class SearchActivity extends AppCompatActivity implements
                         String query = artistEditText.getText().toString() + " " + songEditText.getText().toString();
 
                         // this synchronized lock ensures we don't display the search results until they are found
-                        // NOTE: may be solved if we remove the task all together
                         synchronized (lock) {
                             // calling our search function to access YouTube's api and return the search results
                             searchResults = Search.Search(query);
@@ -87,7 +107,7 @@ public class SearchActivity extends AppCompatActivity implements
                 };
 
                 // creating a thread to search for the videos
-                Thread threadObj = new Thread(sendTask);
+                Thread threadObj = new Thread(searchTask);
                 threadObj.start();
 
                 // ensuring that we do not access the searchResults until the search has finished
@@ -106,10 +126,7 @@ public class SearchActivity extends AppCompatActivity implements
                                 resultTitles.add(searchResult.getSnippet().getTitle());
                             }
                             // create a String adapter and fill it with the searchResults
-                            // NOTE: May be able to keep a persistent adapter and update it accordingly
-                            // OR we might just pass setAdapter an anonymous ArrayAdapter
-                            ArrayAdapter<String> adapter = new ArrayAdapter<String>(view.getContext(), android.R.layout.simple_list_item_1, android.R.id.text1, resultTitles);
-                            searchListView.setAdapter(adapter);
+                            searchListView.setAdapter(new ArrayAdapter<String>(view.getContext(), android.R.layout.simple_list_item_1, android.R.id.text1, resultTitles));
                         }
                     } catch (InterruptedException e) {
                         e.printStackTrace();
