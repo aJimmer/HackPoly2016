@@ -27,27 +27,41 @@ public class ClientMainActivity extends AppCompatActivity {
     SharedPreferences prefs;
     private String returnedVideoID;
     private String returnedVideoTitle;
+    public String ipStr;
+    TextView hostDisplay;
 
     private static final int SEARCH_CODE = 2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client_main);
+        ipStr ="";
 
-        sendRequest = (Button)findViewById(R.id.sendRequest);
+        hostDisplay = (TextView)findViewById(R.id.hostDisplay);
 
-        sendRequest.setOnClickListener(new View.OnClickListener() {
+        FloatingActionButton search_button = (FloatingActionButton)findViewById(R.id.find_button);
+        search_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), HostMainActivity.class);
-                EditText editText = (EditText) findViewById(R.id.songBox);
-                songRequest = editText.getText().toString();
-                //intent.putExtra(EXTRA_MESSAGE, message);
+                Intent intent = new Intent(v.getContext(), SearchActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        connectToHost = (Button)findViewById(R.id.connectToHost);
+
+
+
+        connectToHost.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EditText editText = (EditText) findViewById(R.id.ipBox);
+                ipStr = editText.getText().toString();
 
                 Runnable task = new Runnable() {
                     @Override
                     public void run() {
-                        sendMessage(songRequest);
+                        //testConnection();
                     }
                 };
                 Thread newThread = new Thread(task);
@@ -55,8 +69,8 @@ public class ClientMainActivity extends AppCompatActivity {
             }
         });
 
-        final FloatingActionButton searchButton = (FloatingActionButton) findViewById(R.id.search_button);
-        searchButton.setOnClickListener(new View.OnClickListener() {
+        final FloatingActionButton findButton = (FloatingActionButton) findViewById(R.id.find_button);
+        findButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 searchSong();
@@ -70,12 +84,29 @@ public class ClientMainActivity extends AppCompatActivity {
         startActivityForResult(searchIntent, SEARCH_CODE);
     }
 
+    public void testConnection(){
+        Socket socket = null;
+        try{
+            socket = new Socket(ipStr, 9000);
+            socket.close();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    hostDisplay.setText(ipStr);
+                }
+            });
+        }catch (IOException e){
+            e.printStackTrace();
+            //hostDisplay.setText("Could not connect");
+        }
+    }
+
     public void sendMessage(String str){
         //Scanner userInput = new Scanner(System.in);
         //String message;
         Socket socket = null;
         try {
-            socket = new Socket("192.168.43.151", 9000);
+            socket = new Socket(ipStr, 9000);
             //message = userInput.nextLine();
             OutputStream os = socket.getOutputStream();
             PrintStream out = new PrintStream(os);

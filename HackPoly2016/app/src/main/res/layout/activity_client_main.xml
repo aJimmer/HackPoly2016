@@ -24,42 +24,21 @@
         android:layout_height="wrap_content"
         android:text="Connect to a Host"
         android:id="@+id/connectToHost"
-        android:layout_below="@+id/clientHomePage"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="113dp" />
+        android:layout_below="@+id/ipBox"
+        android:layout_alignLeft="@+id/ipBox"
+        android:layout_alignStart="@+id/ipBox" />
 
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Send Request"
-        android:id="@+id/sendRequest"
-        android:layout_alignTop="@+id/clientHomePage"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginRight="44dp"
-        android:layout_marginEnd="44dp" />
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/songBox"
+        android:id="@+id/ipBox"
         android:layout_below="@+id/hostDisplay"
-        android:layout_alignRight="@+id/sendRequest"
-        android:layout_alignEnd="@+id/sendRequest"
-        android:layout_toRightOf="@+id/clientHomePage"
-        android:layout_toEndOf="@+id/clientHomePage" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Enter a song and artist"
-        android:id="@+id/textView"
-        android:layout_alignTop="@+id/hostDisplay"
-        android:layout_alignRight="@+id/sendRequest"
-        android:layout_alignEnd="@+id/sendRequest" />
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="79dp"
+        android:layout_alignRight="@+id/clientHomePage"
+        android:layout_alignEnd="@+id/clientHomePage" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -83,7 +62,7 @@
         android:layout_alignParentStart="true" />
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/search_button"
+        android:id="@+id/find_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"

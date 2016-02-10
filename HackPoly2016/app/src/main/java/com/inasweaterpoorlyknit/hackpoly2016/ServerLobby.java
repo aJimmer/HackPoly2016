@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -27,14 +28,11 @@ import java.util.ArrayList;
 
 public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnInitializedListener {
 
-
-    public String clientString = "test";
     public ListView listView;
     public ArrayList<String> songId;
     public ArrayList<String> songNames;
     public static YouTubePlayer player;
     public int index;
-    public static long songDuration;
 
 
 
@@ -42,38 +40,15 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_server_lobby);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
         listView = (ListView)findViewById(R.id.serverText);
+
         songId = new ArrayList<>();
-        songNames = new ArrayList<>();
-        songId.add("AUChk0lxF44");
-        songNames.add("Victorios");
-        songId.add("R03cqGg40GU");
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, android.R.id.text1, songNames);
-        listView.setAdapter(adapter);
+        //songNames = new ArrayList<>();
         index = 0;
 
-        /*Button nextBtn = (Button)findViewById(R.id.nextbtn);
-        nextBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                player.next();
-            }
-        });*/
 
-
-        YouTubePlayerFragment youTubePlayerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R. id.player_fragment);
+        YouTubePlayerFragment youTubePlayerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.player_fragment);
         youTubePlayerFragment.initialize(DeveloperKey.ANDROID_DEVELOPER_KEY, this);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
         //TextView textView = (TextView)findViewById(R.id.serverText);
         Runnable serverThread = new Runnable() {
             @Override
@@ -85,26 +60,23 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                     while(true)
                     {
                         Socket socket = serverSocket.accept();
-
-
                         InputStream in = socket.getInputStream();
                         InputStreamReader read = new InputStreamReader(in, "UTF-8");
                         BufferedReader br = new BufferedReader(read);
                         String yCode = br.readLine();
                         //String songTitle = br.readLine();
-                        songId.add(yCode);
-                        //songNames.add(songTitle);
 
-                        Log.d(yCode, "from client");
-                        //Log.d(songTitle, "song Name");
-                        //updateText(clientString);
-                        /*runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                TextView textView = (TextView) findViewById(R.id.serverText);
-                                textView.setText(clientString);
+                        if(player != null) {
+
+                            songId.add(yCode);
+                            //songNames.add(songTitle);
+                            Log.d(yCode, "from client");
+                            //Log.d(songTitle, "song Name");
+                            if (!player.isPlaying()) {
+                                player.loadVideo(songId.get(0));
+                                songId.remove(0);
                             }
-                        });*/
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -117,8 +89,6 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         Thread thread = new Thread(serverThread);
         thread.start();
 
-
-
         //textView.setText(clientString);
     }
     /*public void updateText(String msg){
@@ -129,15 +99,13 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     @Override
     public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
         if (!b) {
-           youTubePlayer.loadVideos(songId);
+            youTubePlayer.loadVideo("yIWmRbHDhGw");
             this.player = youTubePlayer;
             player.setShowFullscreenButton(false);
-
             player.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
 
                 @Override
                 public void onLoading() {
-
                 }
 
                 @Override
@@ -152,13 +120,14 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
                 @Override
                 public void onVideoStarted() {
-
+                    updateListView();
                 }
 
                 @Override
                 public void onVideoEnded() {
-                    if(songId.size()!=0) {
+                    if(songId.size()> 0) {
                         String id = songId.remove(0);
+                        //songNames.remove(0);
                         player.loadVideo(id);
                     }else{
                         Log.d("LIST IS EMPTY", "serverMSG");
@@ -180,6 +149,10 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
     @Override
     public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
+
+    }
+
+    public void updateListView(){
 
     }
 }
