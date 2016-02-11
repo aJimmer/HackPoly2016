@@ -1,5 +1,6 @@
 package com.inasweaterpoorlyknit.hackpoly2016;
 
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -18,6 +19,7 @@ import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerFragment;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -25,6 +27,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Properties;
 
 public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnInitializedListener {
 
@@ -34,7 +37,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     public static YouTubePlayer player;
     public int index;
 
-
+    private String androidKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +51,37 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
 
         YouTubePlayerFragment youTubePlayerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.player_fragment);
-        youTubePlayerFragment.initialize(DeveloperKey.ANDROID_DEVELOPER_KEY, this);
+
+
+        // accessing our private developerKey.properties folder to hide our personal developer keys
+        // this is so our dev keys will not be hosted on github
+        // place a developerKey.properties file in your assets folder with a androidKey
+        // values if you want this to work
+        try{
+            // getting our properties file in our asset folder
+            AssetManager assetManager = getAssets();
+            Properties prop = new Properties();
+            String propFileName = "developerKey.properties";
+            InputStream inputStream = assetManager.open(propFileName);
+            // only set our android key string if we successfully opened the file
+            if(inputStream != null){
+                prop.load(inputStream);
+                inputStream.close();
+                androidKey = prop.getProperty("androidKey");
+            } else{
+                throw new FileNotFoundException("property file '" + propFileName + "'not found in the classpath");
+            }
+        } catch (Exception e){
+            System.out.println("Exception: " + e);
+        }
+
+        // only initialize our youTubePlayerFragment if our androidKey was obtained
+        if(androidKey != null) {
+            youTubePlayerFragment.initialize(DeveloperKey.ANDROID_DEVELOPER_KEY, this);
+        } else {
+            Log.d("androidKey: ", "failed to initialize");
+        }
+
         //TextView textView = (TextView)findViewById(R.id.serverText);
         Runnable serverThread = new Runnable() {
             @Override

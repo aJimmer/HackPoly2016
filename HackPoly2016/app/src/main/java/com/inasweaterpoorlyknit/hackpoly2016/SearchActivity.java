@@ -2,6 +2,7 @@ package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -23,8 +24,11 @@ import com.google.android.youtube.player.YouTubePlayerFragment;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.api.services.youtube.model.SearchResult;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class SearchActivity extends AppCompatActivity implements
         YouTubePlayer.OnInitializedListener{
@@ -40,6 +44,9 @@ public class SearchActivity extends AppCompatActivity implements
                                                                 // used to update listView
     private int playingVideoIndex;  // index of the video being played
 
+    private String androidKey;
+    private String webKey;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,10 +55,38 @@ public class SearchActivity extends AppCompatActivity implements
         // set playing video to -1, to check if a search ever occurred
         playingVideoIndex = -1;
 
+
         // accessing our player fragment through the contentView
         // setting up the youtube player through the playerFragment
         playerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.search_player_fragment);
-        playerFragment.initialize(DeveloperKey.ANDROID_DEVELOPER_KEY, this);
+
+        // accessing our private developerKey.properties folder to hide our personal developer keys
+        // this is so our dev keys will not be hosted on github
+        // place a developerKey.properties file in your assets folder with a webBrowserKey and androidKey
+        // values if you want this to work
+        try{
+            AssetManager assetManager = getAssets();
+            Properties prop = new Properties();
+            String propFileName = "developerKey.properties";
+            InputStream inputStream = assetManager.open(propFileName);
+            if(inputStream != null){
+                prop.load(inputStream);
+                inputStream.close();
+                webKey = prop.getProperty("webBrowserKey");
+                androidKey = prop.getProperty("androidKey");
+            } else{
+                throw new FileNotFoundException("property file '" + propFileName + "'not found in the classpath");
+            }
+        } catch (Exception e){
+            System.out.println("Exception: " + e);
+        }
+
+        // only initialize our youTubePlayerFragment if our androidKey was obtained
+        if(androidKey != null) {
+            playerFragment.initialize(androidKey, this);
+        } else {
+            Log.d("Android Key: ", "failed to initialize");
+        }
 
         // Accessing all of our components
         final Button searchButton = (Button) findViewById(R.id.search_button); // button to get YouTube search results
@@ -90,13 +125,19 @@ public class SearchActivity extends AppCompatActivity implements
 
                         // this synchronized lock ensures we don't display the search results until they are found
                         synchronized (lock) {
-                            // calling our search function to access YouTube's api and return the search results
-                            searchResults = Search.Search(query);
-                                    //.get(0).getId().getVideoId();
-                                    //.getSnippet().getThumbnails().getStandard();
+                            // only search for results if a webKey was obtained from .properties file
+                            if(webKey != null) {
+                                // calling our search function to access YouTube's api and return the search results
+                                searchResults = Search.Search(query, webKey);
+                            } else {
+                                Log.d("webKey: ", "failed to initialize");
+                            }
+                            //.get(0).getId().getVideoId();
+                            //.getSnippet().getThumbnails().getStandard();
                             // tell the waiting object to continue
                             lock.notify();
                         }
+
                         // debug info to ensure our search was successful
                         if(searchResults.get(0).getId().getVideoId() != null){
                             Log.d("newSongID: ", "new song id is " + searchResults.get(0).getId().getVideoId());

@@ -4,6 +4,7 @@ package com.inasweaterpoorlyknit.hackpoly2016;
  * Created by Connor on 2/6/2016.
  */
 
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
@@ -23,8 +24,9 @@ public class Search {
     // global instance of a YouTube object
     private static YouTube youtube;
 
-    // list of SearchResult objects to hold the search results
-    public static List<SearchResult> Search(String query){
+
+    // list of SearchResult objects to hold the search results, takes a query and web browser key as arguments
+    public static List<SearchResult> Search(String query, String developerKey){
         // try to build a youtube object
         try {
 
@@ -34,12 +36,15 @@ public class Search {
                 }
             }).setApplicationName("youtube-cmdline-search").build();
 
-
             // Define the API request for the search results
             YouTube.Search.List search = youtube.search().list("id,snippet");
 
+            /*
             // using a browser key to allow youtube search functionality
             search.setKey(DeveloperKey.BROWSER_DEVELOPER_KEY);
+            */
+            search.setKey(developerKey);
+
             search.setQ(query);
             search.setType("video");
             search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url)");
