@@ -39,10 +39,6 @@ public class Search {
             // Define the API request for the search results
             YouTube.Search.List search = youtube.search().list("id,snippet");
 
-            /*
-            // using a browser key to allow youtube search functionality
-            search.setKey(DeveloperKey.BROWSER_DEVELOPER_KEY);
-            */
             search.setKey(developerKey);
 
             search.setQ(query);

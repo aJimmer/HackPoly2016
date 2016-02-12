@@ -77,7 +77,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
         // only initialize our youTubePlayerFragment if our androidKey was obtained
         if(androidKey != null) {
-            youTubePlayerFragment.initialize(DeveloperKey.ANDROID_DEVELOPER_KEY, this);
+            youTubePlayerFragment.initialize(androidKey, this);
         } else {
             Log.d("androidKey: ", "failed to initialize");
         }
