@@ -4,6 +4,7 @@ package com.inasweaterpoorlyknit.hackpoly2016;
  * Created by Connor on 2/6/2016.
  */
 
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
@@ -14,34 +15,32 @@ import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 
 import java.io.IOException;
-//import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
-//import java.util.Properties;
 
 public class Search {
-    // variable holding the filename of the file that contains the developer's API key
-    private static final String DEVELOPER_KEY_FILENAME = "DeveloperKey.java";
-
     // number of videos we want the search function to return
     public static final long NUMBER_OF_VIDEOS_TO_RETURN = 10;
 
     // global instance of a YouTube object
     private static YouTube youtube;
 
-    public static List<SearchResult> Search(String query){
+
+    // list of SearchResult objects to hold the search results, takes a query and web browser key as arguments
+    public static List<SearchResult> Search(String query, String developerKey){
+        // try to build a youtube object
         try {
+
             youtube = new YouTube.Builder(new NetHttpTransport(), new JacksonFactory(), new HttpRequestInitializer() {
                 @Override
                 public void initialize(HttpRequest request) throws IOException {
                 }
             }).setApplicationName("youtube-cmdline-search").build();
 
-
             // Define the API request for the search results
             YouTube.Search.List search = youtube.search().list("id,snippet");
 
-            search.setKey(DeveloperKey.BROWSER_DEVELOPER_KEY);
+            search.setKey(developerKey);
+
             search.setQ(query);
             search.setType("video");
             search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url)");
