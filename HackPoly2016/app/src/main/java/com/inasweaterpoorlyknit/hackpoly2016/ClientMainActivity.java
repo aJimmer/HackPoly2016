@@ -2,38 +2,28 @@ package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.SystemClock;
-import android.support.design.widget.FloatingActionButton;
-import android.content.SharedPreferences;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.google.android.youtube.player.YouTubePlayerFragment;
-
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Scanner;
-import java.io.PrintStream;
-import java.io.OutputStream;
-import java.util.StringTokenizer;
-import java.io.PrintStream;
-import java.net.Socket;
 import java.util.regex.Pattern;
 
 public class ClientMainActivity extends AppCompatActivity {
@@ -177,10 +167,15 @@ public class ClientMainActivity extends AppCompatActivity {
 
         //Listen for response on different port
         DatagramSocket responseSocket = new DatagramSocket(9820, getBroadCastAddress());
-        byte[] recieveBuffer = new byte[11];
+        byte[] recieveBuffer = new byte[20];
         DatagramPacket recievePacket = new DatagramPacket(recieveBuffer, recieveBuffer.length);
         responseSocket.receive(recievePacket);
-        ipStr = new String(recieveBuffer);
+        byte []ipData = new byte[recievePacket.getLength()];
+        for(int i = 0; i < recievePacket.getLength(); i ++)
+        {
+            ipData[i] = recieveBuffer[i];
+        }
+        ipStr = new String(ipData);
         ipStr = flipIpAddress(ipStr);
         responseSocket.close();
 

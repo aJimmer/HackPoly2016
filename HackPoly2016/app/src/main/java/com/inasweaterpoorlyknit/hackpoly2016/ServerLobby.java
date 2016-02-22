@@ -130,7 +130,6 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
             socket.receive(receivePacket);
             Log.d("Server", "New Client connected");
             //send Client, the server's ip address
-            byte []ipBytes = new byte[11];
             DatagramSocket sendSocket = new DatagramSocket();
             DatagramPacket sendPacket = new DatagramPacket(localIpAddress.getBytes(), localIpAddress.length(),
                     getBroadCastAddress(), 9820);
