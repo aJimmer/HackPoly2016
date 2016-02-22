@@ -34,7 +34,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Properties;
 
 public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnInitializedListener {
 
@@ -90,7 +92,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         }
 
         //TextView textView = (TextView)findViewById(R.id.serverText);
-        Runnable serverThread = new Runnable() {
+        Runnable serverUDPThread = new Runnable() {
             @Override
             public void run() {
                 try {
