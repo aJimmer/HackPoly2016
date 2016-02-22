@@ -2,12 +2,10 @@ package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.SystemClock;
-import android.support.design.widget.FloatingActionButton;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -17,8 +15,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.google.android.youtube.player.YouTubePlayerFragment;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -26,17 +22,9 @@ import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.math.BigInteger;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.regex.Pattern;
-import java.io.PrintStream;
-import java.io.OutputStream;
-import java.util.StringTokenizer;
 
 public class ClientMainActivity extends AppCompatActivity {
     
@@ -126,9 +114,7 @@ public class ClientMainActivity extends AppCompatActivity {
         }
     }
 
-    public void sendMessage(String str){
-        //Scanner userInput = new Scanner(System.in);
-        //String message;
+    public void sendMessage(String songId, String songName){
         Socket socket = null;
         try {
             socket = new Socket(ipStr, 9000);
@@ -136,7 +122,8 @@ public class ClientMainActivity extends AppCompatActivity {
             OutputStream os = socket.getOutputStream();
             PrintStream out = new PrintStream(os);
             //System.out.println("Client >> " + str);
-            out.println(str);
+            out.println(songId);
+            out.println(songName);
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -157,8 +144,7 @@ public class ClientMainActivity extends AppCompatActivity {
                     Runnable task = new Runnable() {
                         @Override
                         public void run() {
-                            sendMessage(returnedVideoID);
-                            //sendMessage(returnedVideoTitle);
+                            sendMessage(returnedVideoID, returnedVideoTitle);
                         }
                     };
                     Thread newThread = new Thread(task);

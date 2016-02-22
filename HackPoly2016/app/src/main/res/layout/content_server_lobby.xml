@@ -13,7 +13,7 @@
 
     <ListView
         android:text="Test Text"
-        android:id="@+id/serverText"
+        android:id="@+id/server_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="4">

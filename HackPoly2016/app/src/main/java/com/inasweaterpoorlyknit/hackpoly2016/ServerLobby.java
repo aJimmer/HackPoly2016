@@ -43,6 +43,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     public ListView listView;
     public ArrayList<String> songId;
     public ArrayList<String> songNames;
+    public ArrayAdapter<String> listAdapter;
     public static YouTubePlayer player;
     public int index;
 
@@ -52,10 +53,12 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_server_lobby);
-        listView = (ListView)findViewById(R.id.serverText);
-
         songId = new ArrayList<>();
-        //songNames = new ArrayList<>();
+        songNames = new ArrayList<>();
+        songNames.add("Test");
+        listView = (ListView)findViewById(R.id.server_list);
+        listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, songNames);
+        listView.setAdapter(listAdapter);
         index = 0;
 
 
@@ -194,12 +197,18 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                 InputStreamReader read = new InputStreamReader(in, "UTF-8");
                 BufferedReader br = new BufferedReader(read);
                 String yCode = br.readLine();
-                //String songTitle = br.readLine();
+                String songTitle = br.readLine();
 
                 if(player != null) {
 
                     songId.add(yCode);
-                    //songNames.add(songTitle);
+                    songNames.add(songTitle);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            listAdapter.notifyDataSetChanged();
+                        }
+                    });
                     Log.d(yCode, "from client");
                     //Log.d(songTitle, "song Name");
                     if (!player.isPlaying()) {
