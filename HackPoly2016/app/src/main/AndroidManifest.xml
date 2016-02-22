@@ -3,6 +3,7 @@
     package="com.inasweaterpoorlyknit.hackpoly2016">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <application
         android:allowBackup="true"
@@ -41,18 +42,9 @@
         <activity
             android:name=".SearchActivity"
             android:label="@string/search_activity"
-            android:parentActivityName=".TestingLobby"
+            android:parentActivityName=".ClientMainActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateVisible|adjustPan">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.inasweaterpoorlyknit.hackpoly2016.HackPoly2016Activity" />
-        </activity>
-        <activity
-            android:name=".TestingLobby"
-            android:label="@string/testing_lobby_activity"
-            android:parentActivityName=".HackPoly2016Activity"
-            android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.inasweaterpoorlyknit.hackpoly2016.HackPoly2016Activity" />

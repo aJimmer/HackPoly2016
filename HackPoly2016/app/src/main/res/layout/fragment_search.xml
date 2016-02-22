@@ -1,0 +1,35 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.inasweaterpoorlyknit.hackpoly2016.SearchFragment">
+    <EditText
+        android:id="@+id/songTextFrag"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_weight="1"
+        android:hint="@string/song_hint"/>
+
+    <EditText
+        android:id="@+id/artistTextFrag"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:hint="@string/artist_hint" />
+
+    <Button
+        android:id="@+id/searchButtonFrag"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:text="Search"/>
+
+    <ListView
+        android:id="@+id/listViewFrag"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="4">
+    </ListView>
+
+
+</FrameLayout>
