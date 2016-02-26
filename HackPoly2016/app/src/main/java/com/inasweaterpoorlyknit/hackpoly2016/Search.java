@@ -14,10 +14,8 @@ import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 
 import java.io.IOException;
-//import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-//import java.util.Properties;
 
 public class Search {
     // variable holding the filename of the file that contains the developer's API key
@@ -29,7 +27,6 @@ public class Search {
     // global instance of a YouTube object
     private static YouTube youtube;
 
-
     // list of SearchResult objects to hold the search results, takes a query and web browser key as arguments
     public static List<SearchResult> Search(String query, String developerKey){
         // try to build a youtube object
@@ -40,28 +37,33 @@ public class Search {
                 }
             }).setApplicationName("youtube-cmdline-search").build();
 
-
             // Define the API request for the search results
             YouTube.Search.List search = youtube.search().list("id,snippet");
 
-            /*
-            // using a browser key to allow youtube search functionality
-            search.setKey(DeveloperKey.BROWSER_DEVELOPER_KEY);
-            */
+            // use the YouTube browser developer key passed
             search.setKey(developerKey);
 
+            // set the query as the query passed
             search.setQ(query);
+            // only search for videos(not playlists or channels)
             search.setType("video");
+            // different fields to be returned from the JSON organized results
+            // id/kind (should always be "youtube#video")
+            // id/videoId = id of video (used to play)
+            // snippet/title = title of video (used for our playlist)
+            // snippet/thumbnails/default/url = urls of the thumbnails (used for listing results)
             search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url)");
             search.setMaxResults(NUMBER_OF_VIDEOS_TO_RETURN);
 
-            // call api
+            // call YouTube API to get a search response
             SearchListResponse searchResponse = search.execute();
+            // extract the search results from the search response
             List<SearchResult> searchResultList = searchResponse.getItems();
+            // only return search results if anything was found
             if(searchResultList != null){
                 return searchResultList;
             }
-
+        // handle exceptions
         } catch (GoogleJsonResponseException e) {
             System.err.println("There was a service error: " + e.getDetails().getCode() + " : "
                     + e.getDetails().getMessage());
@@ -71,6 +73,7 @@ public class Search {
             t.printStackTrace();
         }
 
+        // return null if search was unsuccessful
         return null;
     }
 }
