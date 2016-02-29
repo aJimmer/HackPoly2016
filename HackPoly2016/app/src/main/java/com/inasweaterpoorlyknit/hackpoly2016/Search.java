@@ -14,7 +14,6 @@ import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Search {

@@ -1,35 +1,55 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.inasweaterpoorlyknit.hackpoly2016.SearchFragment">
-    <EditText
-        android:id="@+id/songTextFrag"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:layout_weight="1"
-        android:hint="@string/song_hint"/>
-
-    <EditText
-        android:id="@+id/artistTextFrag"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:hint="@string/artist_hint" />
-
-    <Button
-        android:id="@+id/searchButtonFrag"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:text="Search"/>
 
     <ListView
         android:id="@+id/listViewFrag"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="4">
+        android:layout_height="276dp"
+        android:layout_weight="4"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/searchButtonFrag">
     </ListView>
 
+    <Button
+        android:id="@+id/searchButtonFrag"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_weight="1"
+        android:text="Search"
+        android:layout_gravity="center"
+        style="@style/ThemeOverlay.AppCompat.Dark"
+        android:layout_below="@+id/artistTextFrag"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
-</FrameLayout>
+    <EditText
+        android:id="@+id/songTextFrag"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_weight="1"
+        android:hint="@string/song_hint"
+        android:layout_gravity="right|top"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="0dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="0dp" />
+
+    <EditText
+        android:id="@+id/artistTextFrag"
+        android:layout_width="match_parent"
+        android:layout_height="69dp"
+        android:layout_weight="1"
+        android:hint="@string/artist_hint"
+        android:layout_gravity="center_horizontal|top"
+        android:layout_below="@+id/songTextFrag"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+
+</RelativeLayout>

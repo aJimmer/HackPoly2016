@@ -12,7 +12,6 @@ import android.content.Intent;
 public class HackPoly2016Activity extends AppCompatActivity {
     Button hostParty;
     Button joinParty;
-    Button testLobby;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,16 +20,12 @@ public class HackPoly2016Activity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         hostParty = (Button)findViewById(R.id.hostParty);
         joinParty = (Button)findViewById(R.id.joinParty);
-        testLobby = (Button)findViewById(R.id.testLobby);
 
         hostParty.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //Method that activates host lobby
                 Intent intent = new Intent(v.getContext(), ServerLobby.class);
-                //EditText editText = (EditText) findViewById(R.id.edit_message);
-                //String message = editText.getText().toString();
-                //intent.putExtra(EXTRA_MESSAGE, message);
                 startActivity(intent);
             }
         });
@@ -39,20 +34,9 @@ public class HackPoly2016Activity extends AppCompatActivity {
             public void onClick(View v) {
                 //Method that activates client lobby
                 Intent intent = new Intent(v.getContext(), ClientMainActivity.class);
-                //EditText editText = (EditText) findViewById(R.id.edit_message);
-                //String message = editText.getText().toString();
-                //intent.putExtra(EXTRA_MESSAGE, message);
                 startActivity(intent);
             }
-        });/*
-        testLobby.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Method that activates test lobby
-                Intent intent = new Intent(v.getContext(), TestingLobby.class);
-                startActivity(intent);
-            }
-        });*/
+        });
 
 
     }

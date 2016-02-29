@@ -3,20 +3,19 @@ package com.inasweaterpoorlyknit.hackpoly2016;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.net.DhcpInfo;
+import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
@@ -27,6 +26,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -38,14 +39,15 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Properties;
 
-public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnInitializedListener {
+public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnInitializedListener{
 
-    public ListView listView;
-    public ArrayList<String> songId;
-    public ArrayList<String> songNames;
-    public ArrayAdapter<String> listAdapter;
-    public static YouTubePlayer player;
-    public int index;
+    private ListView listView;
+    private ArrayList<String> songId;
+    private ArrayList<String> songNames;
+    private ArrayAdapter<String> listAdapter;
+    private YouTubePlayer player;
+
+    private int index;
 
     private String androidKey;
 
@@ -55,13 +57,11 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         setContentView(R.layout.activity_server_lobby);
         songId = new ArrayList<>();
         songNames = new ArrayList<>();
-        songNames.add("Test");
+        //songNames.add("Test");
         listView = (ListView)findViewById(R.id.server_list);
         listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, songNames);
         listView.setAdapter(listAdapter);
         index = 0;
-
-
         YouTubePlayerFragment youTubePlayerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.player_fragment);
 
 
@@ -69,32 +69,32 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         // this is so our dev keys will not be hosted on github
         // place a developerKey.properties file in your assets folder with a androidKey
         // values if you want this to work
-        try{
+        try {
             // getting our properties file in our asset folder
             AssetManager assetManager = getAssets();
             Properties prop = new Properties();
             String propFileName = "developerKey.properties";
             InputStream inputStream = assetManager.open(propFileName);
             // only set our android key string if we successfully opened the file
-            if(inputStream != null){
+            if (inputStream != null) {
                 prop.load(inputStream);
                 inputStream.close();
                 androidKey = prop.getProperty("androidKey");
-            } else{
+            } else {
                 throw new FileNotFoundException("property file '" + propFileName + "'not found in the classpath");
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Exception: " + e);
         }
 
         // only initialize our youTubePlayerFragment if our androidKey was obtained
-        if(androidKey != null) {
+        if (androidKey != null) {
             youTubePlayerFragment.initialize(androidKey, this);
         } else {
             Log.d("androidKey: ", "failed to initialize");
         }
 
-        //TextView textView = (TextView)findViewById(R.id.serverText);
+        //Run UDP server socket on new thread
         Runnable serverUDPThread = new Runnable() {
             @Override
             public void run() {
@@ -107,6 +107,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
             }
 
         };
+        //Run TCP server socket on new thread.
         Runnable serverTCPThread = new Runnable() {
             @Override
             public void run() {
@@ -120,23 +121,25 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         thread.start();
         tcpThread.start();
 
-        //textView.setText(clientString);
     }
-    /*public void updateText(String msg){
-        TextView textView = (TextView)findViewById(R.id.serverText);
-        textView.setText(clientString);
-    }*/
+
+    /**
+     * Runs UDP Server socket that listens for new clients trying to connect
+     * to party
+     *
+     * @throws IOException
+     */
     public void udpServer() throws IOException {
 
         String localIpAddress = getLocalIpAddress();
 
 
-        while(true) {
+        while (true) {
             DatagramSocket socket = new DatagramSocket(9821, getBroadCastAddress());
             socket.setBroadcast(true);
 
             //Recieve data about connected client
-            byte []recieveDate = new byte[10];
+            byte[] recieveDate = new byte[10];
             DatagramPacket receivePacket = new DatagramPacket(recieveDate, recieveDate.length);
             socket.receive(receivePacket);
             Log.d("Server", "New Client connected");
@@ -145,61 +148,76 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
             DatagramPacket sendPacket = new DatagramPacket(localIpAddress.getBytes(), localIpAddress.length(),
                     getBroadCastAddress(), 9820);
 
-           sendSocket.send(sendPacket);
-           sendSocket.close();
-           socket.close();
+            sendSocket.send(sendPacket);
+            sendSocket.close();
+            socket.close();
 
 
-            Log.d("Broadcasting", "Broadcast " + localIpAddress +" to network");
-            //socket.close();
+            Log.d("Broadcasting", "Broadcast " + localIpAddress + " to network");
+
 
         }
 
 
     }
+
+    /**
+     * Returns the this device's ip address. Which is sent to
+     * clients as a way for them to set up TCP sockets
+     *
+     * @return
+     * @throws UnknownHostException
+     */
     public String getLocalIpAddress() throws UnknownHostException {
         WifiManager wifi = (WifiManager) getSystemService(WIFI_SERVICE);
         WifiInfo wifiInfo = wifi.getConnectionInfo();
         int ip = wifiInfo.getIpAddress();
-        byte [] ipByteArray = BigInteger.valueOf(ip).toByteArray();
+        byte[] ipByteArray = BigInteger.valueOf(ip).toByteArray();
         String ipString;
         ipString = InetAddress.getByAddress(ipByteArray).getHostAddress();
-        return  ipString;
+        return ipString;
     }
 
-    public InetAddress getBroadCastAddress() throws IOException
-    {
-        WifiManager wifi = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+    /**
+     * Returns the broadcast address for the current network
+     *
+     * @return
+     * @throws IOException
+     */
+    public InetAddress getBroadCastAddress() throws IOException {
+        WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         DhcpInfo dhcp = wifi.getDhcpInfo();
-        if(dhcp == null)
-        {
+        if (dhcp == null) {
             return null;
         }
         int broadCast = (dhcp.ipAddress & dhcp.netmask) | ~dhcp.netmask;
-        byte []quads = new byte[4];
-        for(int k = 0; k < 4; k++)
-        {
-            quads[k] = (byte) (broadCast >> (k*8));
+        byte[] quads = new byte[4];
+        for (int k = 0; k < 4; k++) {
+            quads[k] = (byte) (broadCast >> (k * 8));
         }
         return InetAddress.getByAddress(quads);
 
     }
-    public void runTCPSocket()
-    {
+
+    /**
+     * Method which runs the tcp server socket.
+     * This socket waits for messages from the clients
+     */
+    public void runTCPSocket() {
         try {
             ServerSocket serverSocket = new ServerSocket();
             serverSocket.setReuseAddress(true);
             serverSocket.bind(new InetSocketAddress(9000));
-            while(true)
-            {
+            while (true) {
                 Socket socket = serverSocket.accept();
                 InputStream in = socket.getInputStream();
                 InputStreamReader read = new InputStreamReader(in, "UTF-8");
                 BufferedReader br = new BufferedReader(read);
+                //read the data being sent from client.
                 String yCode = br.readLine();
                 String songTitle = br.readLine();
 
-                if(player != null) {
+                if (player != null) {
 
                     songId.add(yCode);
                     songNames.add(songTitle);
@@ -216,11 +234,20 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                         songId.remove(0);
                     }
                 }
+                //Send playlist back to client
+                OutputStream out = socket.getOutputStream();
+                PrintStream outValue = new PrintStream(out);
+                outValue.println(songNames.size()); // send size of songname Array
+                for(int i = 0; i < songNames.size(); i++)
+                {
+                    outValue.println(songNames.get(i));
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     @Override
     public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
@@ -246,16 +273,17 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
                 @Override
                 public void onVideoStarted() {
-                    updateListView();
+
                 }
 
                 @Override
                 public void onVideoEnded() {
-                    if(songId.size()> 0) {
+                    if (songId.size() > 0) {
                         String id = songId.remove(0);
-                        //songNames.remove(0);
+                        String name = songNames.remove(0);
+                        listAdapter.notifyDataSetChanged();
                         player.loadVideo(id);
-                    }else{
+                    } else {
                         Log.d("LIST IS EMPTY", "serverMSG");
                     }
 
@@ -272,13 +300,8 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     }
 
 
-
     @Override
     public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
-
-    }
-
-    public void updateListView(){
 
     }
 }

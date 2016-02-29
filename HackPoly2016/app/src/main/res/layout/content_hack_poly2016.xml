@@ -26,15 +26,6 @@
        android:layout_alignStart="@+id/hostParty"
        android:layout_margin="30dp" />
 
-    <Button
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:text="@string/test_lobby"
-        android:id="@+id/testLobby"
-        android:fontFamily="Arial"
-        android:layout_centerVertical="true"
-        android:layout_alignLeft="@+id/hostParty"
-        android:layout_alignStart="@+id/hostParty"
-        android:layout_margin="30dp" />
+
 
 </LinearLayout>

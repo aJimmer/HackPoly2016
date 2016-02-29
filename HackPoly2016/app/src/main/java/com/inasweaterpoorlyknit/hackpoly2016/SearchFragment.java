@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -16,6 +17,7 @@ import com.google.api.services.youtube.model.SearchResult;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -82,7 +84,8 @@ public class SearchFragment extends Fragment {
         // accessing our private developerKey.properties folder to hide our personal developer keys
         // this is so our dev keys will not be hosted on github
         // place a developerKey.properties file in your assets folder with a webBrowserKey and androidKey
-        // values if you want this to work
+        // values if you want this to wo
+        View view = inflater.inflate(R.layout.fragment_search, container, false);
         try{
             AssetManager assetManager = this.getContext().getAssets();
             Properties prop = new Properties();
@@ -99,14 +102,19 @@ public class SearchFragment extends Fragment {
             System.out.println("Exception: " + e);
         }
 
-        final Button searchButton = (Button)getView().findViewById(R.id.searchButtonFrag); // button to get YouTube search results
-        final EditText songEditText = (EditText) getView().findViewById(R.id.songTextFrag); // editText for getting song from user
-        final EditText artistEditText = (EditText)getView().findViewById(R.id.artistTextFrag); // editText for getting artist from user
-        final ListView searchListView = (ListView) getView().findViewById(R.id.listViewFrag); // listView to show search results
+        final Button searchButton = (Button)view.findViewById(R.id.searchButtonFrag); // button to get YouTube search results
+        final EditText songEditText = (EditText) view.findViewById(R.id.songTextFrag); // editText for getting song from user
+        final EditText artistEditText = (EditText)view.findViewById(R.id.artistTextFrag); // editText for getting artist from user
+        final ListView searchListView = (ListView) view.findViewById(R.id.listViewFrag); // listView to show search results
+        final ArrayList<String> songNames = new ArrayList<>();
+        final ArrayAdapter<String> listAdapter = new ArrayAdapter<String>(view.getContext(), android.R.layout.simple_list_item_1, songNames);
+        searchListView.setAdapter(listAdapter);
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // tast for thread, so we can access networks outside of the main thread
+                songNames.add(songEditText.getText().toString());
+                listAdapter.notifyDataSetChanged();
+                /*// test for thread, so we can access networks outside of the main thread
 
                 // concatenate the artist and song names from the user
                 // NOTE: Maybe not have it be two things. Unnecessary but might look better?
@@ -132,7 +140,7 @@ public class SearchFragment extends Fragment {
                     Log.d("newSongID: ", "new song id is " + searchResults.get(0).getId().getVideoId());
                 } else {
                     Log.d("newSongID: ", "couldn't get new song id");
-                }
+                }*/
             }
             });
         return inflater.inflate(R.layout.fragment_search, container, false);

@@ -11,11 +11,17 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.math.BigInteger;
@@ -24,6 +30,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 public class ClientMainActivity extends AppCompatActivity {
@@ -32,6 +39,9 @@ public class ClientMainActivity extends AppCompatActivity {
     public String songRequest;
     Button sendRequest;
     Button connectToHost;
+    private ListView clientList;
+    private ArrayList<String> songList;
+    private ArrayAdapter<String> listAdapter;
     SharedPreferences prefs;
     private String returnedVideoID;
     private String returnedVideoTitle;
@@ -44,9 +54,10 @@ public class ClientMainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client_main);
         ipStr ="";
-
-        hostDisplay = (TextView)findViewById(R.id.hostDisplay);
-
+        clientList = (ListView)findViewById(R.id.client_list);
+        songList = new ArrayList<>();
+        listAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, songList);
+        clientList.setAdapter(listAdapter);
         FloatingActionButton search_button = (FloatingActionButton)findViewById(R.id.find_button);
         search_button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -58,13 +69,10 @@ public class ClientMainActivity extends AppCompatActivity {
 
         connectToHost = (Button)findViewById(R.id.connectToHost);
 
-
-
         connectToHost.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EditText editText = (EditText) findViewById(R.id.ipBox);
-                ipStr = editText.getText().toString();
+
 
                 Runnable task = new Runnable() {
                     @Override
@@ -118,12 +126,29 @@ public class ClientMainActivity extends AppCompatActivity {
         Socket socket = null;
         try {
             socket = new Socket(ipStr, 9000);
-            //message = userInput.nextLine();
+            //Send song id and song name to sever
             OutputStream os = socket.getOutputStream();
             PrintStream out = new PrintStream(os);
-            //System.out.println("Client >> " + str);
             out.println(songId);
             out.println(songName);
+
+            //Recieve Playlist from server
+            InputStream in = socket.getInputStream();
+            InputStreamReader read = new InputStreamReader(in, "UTF-8");
+            BufferedReader br = new BufferedReader(read);
+            int playlistSize = Integer.parseInt(br.readLine());
+            songList.clear();
+            for(int i = 0; i < playlistSize; i++)
+            {
+                songList.add(br.readLine());
+
+            }
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    listAdapter.notifyDataSetChanged();
+                }
+            });
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -183,7 +208,9 @@ public class ClientMainActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                hostDisplay.setText(ipStr);
+                //hostDisplay.setText(ipStr);
+                CharSequence text = "Connected to " + ipStr;
+                Toast.makeText(ClientMainActivity.this, text, Toast.LENGTH_SHORT).show();
             }
         });
 
