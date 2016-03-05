@@ -1,6 +1,7 @@
 package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -15,6 +16,7 @@ public class PlaylistFragment extends Fragment {
 
     private ListView playlistListView;
     private ArrayList<String> currentPlaylistTitles;
+    private ArrayAdapter<String> playlistAdapter;
 
     public PlaylistFragment() {
         // Required empty public constructor
@@ -33,21 +35,17 @@ public class PlaylistFragment extends Fragment {
 
         playlistListView = (ListView) rootView.findViewById(R.id.playlist_fragment_list_view);
 
-        currentPlaylistTitles = new ArrayList<>();
-        currentPlaylistTitles.add("Current Song 1 by Artist 1");
-        currentPlaylistTitles.add("Current Song 2 by Artist 2");
-        currentPlaylistTitles.add("Current Song 3 by Artist 3");
-        currentPlaylistTitles.add("Current Song 4 by Artist 4");
-        currentPlaylistTitles.add("Current Song 5 by Artist 5");
-        currentPlaylistTitles.add("Current Song 6 by Artist 6");
-        currentPlaylistTitles.add("Current Song 7 by Artist 7");
-        currentPlaylistTitles.add("Current Song 8 by Artist 8");
-        currentPlaylistTitles.add("Current Song 9 by Artist 9");
-        currentPlaylistTitles.add("Current Song 10 by Artist 10");
+        playlistAdapter = new ArrayAdapter<String>(rootView.getContext(), android.R.layout.simple_list_item_1, android.R.id.text1, currentPlaylistTitles);
 
-        playlistListView.setAdapter(new ArrayAdapter<String>(rootView.getContext(), android.R.layout.simple_list_item_1, android.R.id.text1, currentPlaylistTitles));
+        playlistListView.setAdapter(playlistAdapter);
         // Inflate the layout for this fragment
         return rootView;
+    }
+
+    @Override
+    public void setArguments(Bundle bundle){
+        super.setArguments(bundle);
+        currentPlaylistTitles = bundle.getStringArrayList("songTitles");
     }
 
     @Override
@@ -58,5 +56,13 @@ public class PlaylistFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
+    }
+
+    public void notifyDataSetChanged(){
+        playlistAdapter.notifyDataSetChanged();
+    }
+
+    public boolean isAdapterInitialized(){
+        return !(playlistAdapter == null);
     }
 }
