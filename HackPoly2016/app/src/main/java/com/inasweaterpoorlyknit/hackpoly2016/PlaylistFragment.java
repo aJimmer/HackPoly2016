@@ -15,6 +15,7 @@ import java.util.ArrayList;
 public class PlaylistFragment extends Fragment {
 
     private ListView playlistListView;
+
     private ArrayList<String> currentPlaylistTitles;
     private ArrayAdapter<String> playlistAdapter;
 

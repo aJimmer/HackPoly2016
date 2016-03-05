@@ -362,4 +362,13 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
 
     }
+
+    public void addSong(String songID, String songTitle){
+        playlistSongIDs.add(songID);
+        playlistSongTitles.add(songTitle);
+        playlistFragment.notifyDataSetChanged();
+        if(historyFragment.isAdapterInitialized()) {
+            historyFragment.notifyDataSetChanged();
+        }
+    }
 }
