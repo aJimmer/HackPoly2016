@@ -25,7 +25,7 @@
     <string name="title_history">History</string>
 
     <string name="search_fragment_button">Search</string>
-    <string name="search_fragment_edit_text">song and artist</string>
+    <string name="search_fragment_edit_text">song and/or artist</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
