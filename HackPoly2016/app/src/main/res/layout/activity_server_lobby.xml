@@ -14,6 +14,26 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_server_lobby" />
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <fragment
+            android:id="@+id/player_fragment"
+            android:name="com.google.android.youtube.player.YouTubePlayerFragment"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight=".4"/>
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:id="@+id/server_list"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="0.81"
+            android:background="#ffffff" />
+
+    </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>
