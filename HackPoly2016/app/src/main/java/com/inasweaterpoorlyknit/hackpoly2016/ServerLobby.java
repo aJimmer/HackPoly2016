@@ -3,18 +3,17 @@ package com.inasweaterpoorlyknit.hackpoly2016;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.net.DhcpInfo;
-import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 
 import com.google.android.youtube.player.YouTubeInitializationResult;
@@ -37,9 +36,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnInitializedListener{
+
+    private TabLayout tabLayout;
+    private ViewPager viewPager;
 
     private ListView listView;
     private ArrayList<String> songId;
@@ -55,12 +58,16 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_server_lobby);
+
+        viewPager = (ViewPager) findViewById(R.id.viewpager);
+        setupViewPager(viewPager);
+
+        tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(viewPager);
+
         songId = new ArrayList<>();
         songNames = new ArrayList<>();
         //songNames.add("Test");
-        listView = (ListView)findViewById(R.id.server_list);
-        listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, songNames);
-        listView.setAdapter(listAdapter);
         index = 0;
         YouTubePlayerFragment youTubePlayerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.player_fragment);
 
@@ -123,6 +130,43 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
     }
 
+    private void setupViewPager(ViewPager viewPager) {
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        adapter.addFragment(new PlaylistFragment(), getResources().getString(R.string.title_playlist));
+        adapter.addFragment(new SearchFragment(), getResources().getString(R.string.title_search));
+        adapter.addFragment(new HistoryFragment(), getResources().getString(R.string.title_history));
+        viewPager.setAdapter(adapter);
+    }
+
+    class ViewPagerAdapter extends FragmentPagerAdapter {
+        private final List<Fragment> mFragmentList = new ArrayList<>();
+        private final List<String> mFragmentTitleList = new ArrayList<>();
+
+        public ViewPagerAdapter(FragmentManager manager) {
+            super(manager);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return mFragmentList.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return mFragmentList.size();
+        }
+
+        public void addFragment(Fragment fragment, String title) {
+            mFragmentList.add(fragment);
+            mFragmentTitleList.add(title);
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return mFragmentTitleList.get(position);
+        }
+    }
+
     /**
      * Runs UDP Server socket that listens for new clients trying to connect
      * to party
@@ -139,8 +183,8 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
             socket.setBroadcast(true);
 
             //Recieve data about connected client
-            byte[] recieveDate = new byte[10];
-            DatagramPacket receivePacket = new DatagramPacket(recieveDate, recieveDate.length);
+            byte[] receiveDate = new byte[10];
+            DatagramPacket receivePacket = new DatagramPacket(receiveDate, receiveDate.length);
             socket.receive(receivePacket);
             Log.d("Server", "New Client connected");
             //send Client, the server's ip address
@@ -252,7 +296,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     @Override
     public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
         if (!b) {
-            youTubePlayer.loadVideo("yIWmRbHDhGw");
+            youTubePlayer.loadVideo("S-Xm7s9eGxU");
             this.player = youTubePlayer;
             player.setShowFullscreenButton(false);
             player.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {

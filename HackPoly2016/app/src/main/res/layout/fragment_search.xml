@@ -1,55 +1,32 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="com.inasweaterpoorlyknit.hackpoly2016.SearchFragment">
 
-    <ListView
-        android:id="@+id/listViewFrag"
+    <EditText
+        android:id="@+id/search_fragment_edit_text"
         android:layout_width="match_parent"
-        android:layout_height="276dp"
-        android:layout_weight="4"
-        android:layout_gravity="center_horizontal|bottom"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/searchButtonFrag">
-    </ListView>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:hint="@string/search_fragment_edit_text"
+        android:singleLine="true"
+        android:imeOptions="actionDone"/>
 
     <Button
-        android:id="@+id/searchButtonFrag"
+        android:id="@+id/search_fragment_button"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="0dp"
         android:layout_weight="1"
-        android:text="Search"
-        android:layout_gravity="center"
-        style="@style/ThemeOverlay.AppCompat.Dark"
-        android:layout_below="@+id/artistTextFrag"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:text="@string/search_fragment_button"/>
 
-    <EditText
-        android:id="@+id/songTextFrag"
+    <ListView
+        android:id="@+id/search_fragment_list_view"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_weight="1"
-        android:hint="@string/song_hint"
-        android:layout_gravity="right|top"
-        android:layout_alignParentLeft="true"
-        android:layout_marginLeft="0dp"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="0dp" />
-
-    <EditText
-        android:id="@+id/artistTextFrag"
-        android:layout_width="match_parent"
-        android:layout_height="69dp"
-        android:layout_weight="1"
-        android:hint="@string/artist_hint"
-        android:layout_gravity="center_horizontal|top"
-        android:layout_below="@+id/songTextFrag"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_height="0dp"
+        android:layout_weight="4">
+    </ListView>
 
 
-</RelativeLayout>
+</LinearLayout>
