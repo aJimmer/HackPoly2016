@@ -38,6 +38,7 @@ public class SearchFragment extends Fragment {
     private Object lock = new Object(); // a lock object used for synchronization with task
     public List<SearchResult> searchResults; // list to hold the search results from youtube's search api
     public ArrayList<String> searchTitles;
+    public ArrayList<String> searchThumbnails;
     private ArrayAdapter<String> resultsAdapter;
 
     private String webKey;
@@ -59,9 +60,10 @@ public class SearchFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_search, container, false);
 
         selectedVideoIndex = -1;
+        searchTitles = new ArrayList<>();
+        searchThumbnails = new ArrayList<>();
 
         searchEditText = (EditText) rootView.findViewById(R.id.search_fragment_edit_text);
-
 
         // input method manager to control when the keyboard is active
         final InputMethodManager inputManager = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -112,6 +114,7 @@ public class SearchFragment extends Fragment {
                             // for each searchResult, set it in the result Titles
                             for (SearchResult searchResult : searchResults) {
                                 searchTitles.add(searchResult.getSnippet().getTitle());
+                                searchThumbnails.add(searchResult.getSnippet().getThumbnails().getDefault().getUrl());
                             }
                             resultsAdapter.notifyDataSetChanged();
                         }
@@ -124,6 +127,8 @@ public class SearchFragment extends Fragment {
 
         // if an item in the list is clicked, save it's current index in the list view
         searchListView = (ListView) rootView.findViewById(R.id.search_fragment_list_view);
+        resultsAdapter = new PlaylistAdapter(getActivity(), searchTitles, searchThumbnails);
+        searchListView.setAdapter(resultsAdapter);
         searchListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -138,8 +143,9 @@ public class SearchFragment extends Fragment {
                 // only do something if the user actually searched for a video
                 if (selectedVideoIndex >= 0) {
                     // if user selected any video add to playlist
-                    ((ServerLobby)getActivity()).addSong(searchResults.get(selectedVideoIndex).getId().getVideoId(),
-                            searchResults.get(selectedVideoIndex).getSnippet().getTitle());
+                    ((ServerLobby) getActivity()).addSong(searchResults.get(selectedVideoIndex).getId().getVideoId(),
+                            searchResults.get(selectedVideoIndex).getSnippet().getTitle(),
+                            searchResults.get(selectedVideoIndex).getSnippet().getThumbnails().getDefault().getUrl());
                     Toast.makeText(view.getContext(), "Song added to current playlist.", Toast.LENGTH_SHORT).show();
                 } else {
                     // inform user they must search for a video first
@@ -159,11 +165,6 @@ public class SearchFragment extends Fragment {
                 return false;
             }
         });
-
-        searchTitles = new ArrayList<>();
-        resultsAdapter = new ArrayAdapter<String>(rootView.getContext(), android.R.layout.simple_list_item_1, android.R.id.text1, searchTitles);
-
-        searchListView.setAdapter(resultsAdapter);
 
         try{
             AssetManager assetManager = getActivity().getAssets();

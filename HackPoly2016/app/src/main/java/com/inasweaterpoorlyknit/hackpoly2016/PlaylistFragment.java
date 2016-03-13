@@ -17,7 +17,8 @@ public class PlaylistFragment extends Fragment {
     private ListView playlistListView;
 
     private ArrayList<String> currentPlaylistTitles;
-    private ArrayAdapter<String> playlistAdapter;
+    private ArrayList<String> playlistThumbnails;
+    private PlaylistAdapter playlistAdapter;
 
     public PlaylistFragment() {
         // Required empty public constructor
@@ -36,7 +37,7 @@ public class PlaylistFragment extends Fragment {
 
         playlistListView = (ListView) rootView.findViewById(R.id.playlist_fragment_list_view);
 
-        playlistAdapter = new ArrayAdapter<String>(rootView.getContext(), android.R.layout.simple_list_item_1, android.R.id.text1, currentPlaylistTitles);
+        playlistAdapter = new PlaylistAdapter(getActivity(), currentPlaylistTitles, playlistThumbnails);
 
         playlistListView.setAdapter(playlistAdapter);
         // Inflate the layout for this fragment
@@ -47,6 +48,7 @@ public class PlaylistFragment extends Fragment {
     public void setArguments(Bundle bundle){
         super.setArguments(bundle);
         currentPlaylistTitles = bundle.getStringArrayList("songTitles");
+        playlistThumbnails = bundle.getStringArrayList("songThumbnails");
     }
 
     @Override

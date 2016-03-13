@@ -6,7 +6,6 @@ import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -43,7 +42,9 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     // private ArrayAdapter<String> listAdapter;
     private ArrayList<String> playlistSongIDs;
     private ArrayList<String> playlistSongTitles;
+    private ArrayList<String> playlistThumbnails;
     private ArrayList<String> historySongTitles;
+    private ArrayList<String> historyThumbnails;
     private YouTubePlayer player;
 
     private PlaylistFragment historyFragment;
@@ -62,22 +63,29 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         // our arrays to hold the song ids and titles of the current playlist
         playlistSongIDs = new ArrayList<>();
         playlistSongTitles = new ArrayList<>();
+        playlistThumbnails = new ArrayList<>();
         historySongTitles = new ArrayList<>();
+        historyThumbnails = new ArrayList<>();
 
         // four hardcoded songs to assist with debugging
         playlistSongIDs.add("S-Xm7s9eGxU");
         playlistSongTitles.add("Erik Satie - Gymnopédie No.1");
+        playlistThumbnails.add("https://i.ytimg.com/vi/S-Xm7s9eGxU/default.jpg");
         playlistSongIDs.add("HyozVHz9Ml4");
-        playlistSongTitles.add("Laurence Equilbey - Cantique de Jean Racine - opus 11 (In Paradisum");
+        playlistSongTitles.add("Laurence Equilbey - Cantique de Jean Racine - opus 11 (In Paradisum)");
+        playlistThumbnails.add("https://i.ytimg.com/vi/HyozVHz9Ml4/default.jpg");
         playlistSongIDs.add("iqb60rxl96I");
         playlistSongTitles.add("Eluvium - Radio Ballet");
+        playlistThumbnails.add("https://i.ytimg.com/vi/iqb60rxl96I/default.jpg");
         playlistSongIDs.add("KHlnKXBVFVg");
         playlistSongTitles.add("Wintercoats // Working on a Dream");
+        playlistThumbnails.add("https://i.ytimg.com/vi/KHlnKXBVFVg/default.jpg");
 
         // initialize playlist fragment with current tracks
         playlistFragment = new PlaylistFragment();
         Bundle playlistFragArgs = new Bundle();
         playlistFragArgs.putStringArrayList("songTitles", playlistSongTitles);
+        playlistFragArgs.putStringArrayList("songThumbnails", playlistThumbnails);
         playlistFragment.setArguments(playlistFragArgs);
 
         // initialize search fragment
@@ -87,6 +95,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         historyFragment = new PlaylistFragment();
         Bundle historyFragArgs = new Bundle();
         historyFragArgs.putStringArrayList("songTitles", historySongTitles);
+        historyFragArgs.putStringArrayList("songThumbnails", historyThumbnails);
         historyFragment.setArguments(historyFragArgs);
 
         // initialize the viewPager to link to the three fragments(Playlist, Search, History)
@@ -334,6 +343,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                     if (playlistSongIDs.size() > 0) {
                         playlistSongIDs.remove(0);
                         historySongTitles.add(0, playlistSongTitles.remove(0));
+                        historyThumbnails.add(0, playlistThumbnails.remove(0));
                         if(!playlistSongIDs.isEmpty()){
                             player.loadVideo(playlistSongIDs.get(0));
                         }
@@ -363,12 +373,16 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
     }
 
-    public void addSong(String songID, String songTitle){
+    public void addSong(String songID, String songTitle, String songThumbnail){
         playlistSongIDs.add(songID);
         playlistSongTitles.add(songTitle);
+        playlistThumbnails.add(songThumbnail);
         playlistFragment.notifyDataSetChanged();
         if(historyFragment.isAdapterInitialized()) {
             historyFragment.notifyDataSetChanged();
+        }
+        if(!player.isPlaying()){
+            player.loadVideo(songID);
         }
     }
 }
