@@ -35,32 +35,29 @@ import java.util.Properties;
 
 public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnInitializedListener{
 
-    private TabLayout tabLayout;
-    private ViewPager viewPager;
+    private ArrayList<String> playlistSongIDs;      // current playlist's song IDs
+    private ArrayList<String> playlistSongTitles;   // current playlist's song titles
+    private ArrayList<String> playlistThumbnails;   // current playlist's song thumbnails
+    private ArrayList<String> historySongTitles;    // previous playlist song titles
+    private ArrayList<String> historyThumbnails;    // previous playlist song thumbnails
+    
+    private YouTubePlayer player;                   // the YouTube player fragment
 
-    // private ListView listView;
-    // private ArrayAdapter<String> listAdapter;
-    private ArrayList<String> playlistSongIDs;
-    private ArrayList<String> playlistSongTitles;
-    private ArrayList<String> playlistThumbnails;
-    private ArrayList<String> historySongTitles;
-    private ArrayList<String> historyThumbnails;
-    private YouTubePlayer player;
+    private ViewPager viewPager;    // view pager will link our three fragments
+    private TabLayout tabLayout;    // the tabs that initiate the change between fragments
+    
+    private PlaylistFragment historyFragment;       // fragment to display playlist history
+    private PlaylistFragment playlistFragment;      // fragment to display the current playlist
+    private SearchFragment searchFragment;          // fragment to allow searching and adding new songs
 
-    private PlaylistFragment historyFragment;
-    private PlaylistFragment playlistFragment;
-    private SearchFragment searchFragment;
-
-    private int index;
-
-    private String androidKey;
+    private String androidKey;                      // android developer key
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_server_lobby);
 
-        // our arrays to hold the song ids and titles of the current playlist
+        // initialize our arrays to hold the song ids, titles, and thumbnails
         playlistSongIDs = new ArrayList<>();
         playlistSongTitles = new ArrayList<>();
         playlistThumbnails = new ArrayList<>();
@@ -82,21 +79,21 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         playlistThumbnails.add("https://i.ytimg.com/vi/KHlnKXBVFVg/default.jpg");
 
         // initialize playlist fragment with current tracks
-        playlistFragment = new PlaylistFragment();
-        Bundle playlistFragArgs = new Bundle();
-        playlistFragArgs.putStringArrayList("songTitles", playlistSongTitles);
-        playlistFragArgs.putStringArrayList("songThumbnails", playlistThumbnails);
-        playlistFragment.setArguments(playlistFragArgs);
+        playlistFragment = new PlaylistFragment();  // intialize playlist fragment
+        Bundle playlistFragArgs = new Bundle(); // create a bundle to send to playlist fragment
+        playlistFragArgs.putStringArrayList("songTitles", playlistSongTitles);  // put access to playlistSongTitles in bundle
+        playlistFragArgs.putStringArrayList("songThumbnails", playlistThumbnails); // put access to playlistThumbnails in bundle
+        playlistFragment.setArguments(playlistFragArgs);    // set the arguments of the playlistFragment with the new bundle
 
         // initialize search fragment
         searchFragment = new SearchFragment();
 
         // initialize history fragment
-        historyFragment = new PlaylistFragment();
-        Bundle historyFragArgs = new Bundle();
-        historyFragArgs.putStringArrayList("songTitles", historySongTitles);
-        historyFragArgs.putStringArrayList("songThumbnails", historyThumbnails);
-        historyFragment.setArguments(historyFragArgs);
+        historyFragment = new PlaylistFragment();  // intialize history fragment
+        Bundle historyFragArgs = new Bundle();  // create a bundle to send to playlist fragment
+        historyFragArgs.putStringArrayList("songTitles", historySongTitles); // put access to historySongTitles in bundle
+        historyFragArgs.putStringArrayList("songThumbnails", historyThumbnails); // put access to historyThumbnails in bundle
+        historyFragment.setArguments(historyFragArgs);  // set the arguments of the historyFragment with the new bundle
 
         // initialize the viewPager to link to the three fragments(Playlist, Search, History)
         viewPager = (ViewPager) findViewById(R.id.viewpager);
@@ -106,18 +103,14 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
 
-        //listView = (ListView)findViewById(R.id.server_list);
-        //listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, songNames);
-        //listView.setAdapter(listAdapter);
-
-        // initialize current index of video to zero
-        index = 0;
+        // initialize our YouTube player through a youTubePlayerFragment
+        // all initialization is handled in the functions: OnInitializationSuccess and OnInitializationFailure
         YouTubePlayerFragment youTubePlayerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.player_fragment);
 
         // accessing our private developerKey.properties folder to hide our personal developer keys
         // this is so our dev keys will not be hosted on github
         // place a developerKey.properties file in your assets folder with a androidKey
-        // values if you want this to work
+        // value if you want this to work
         try {
             // getting our properties file in our asset folder
             AssetManager assetManager = getAssets();
@@ -143,7 +136,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
             Log.d("androidKey: ", "failed to initialize");
         }
 
-        //Run UDP server socket on new thread
+        //Run UDP server socket on new thread[since there should be no networking on main thread]
         Runnable serverUDPThread = new Runnable() {
             @Override
             public void run() {
@@ -156,6 +149,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
             }
 
         };
+        
         //Run TCP server socket on new thread.
         Runnable serverTCPThread = new Runnable() {
             @Override
@@ -172,17 +166,14 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
     }
 
-    /*
-    *   setupViewPager is a layout manager that allows us to flip left and right through fragments
-    *   we initialize it with our PlaylistFragment, SearchFragment, and HistoryFragment
-    */
-
+    //   setupViewPager is a layout manager that allows us to flip left and right through fragments
+    //   we initialize it with our PlaylistFragment, SearchFragment, and HistoryFragment
     private void setupViewPager(ViewPager viewPager) {
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        adapter.addFragment(playlistFragment, getResources().getString(R.string.title_playlist));
-        adapter.addFragment(searchFragment, getResources().getString(R.string.title_search));
-        adapter.addFragment(historyFragment, getResources().getString(R.string.title_history));
-        viewPager.setAdapter(adapter);
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager()); // initialize a viewPagerAdapter
+        adapter.addFragment(playlistFragment, getResources().getString(R.string.title_playlist));   // Add the playlist,
+        adapter.addFragment(searchFragment, getResources().getString(R.string.title_search));       // search, and
+        adapter.addFragment(historyFragment, getResources().getString(R.string.title_history));     // history fragments
+        viewPager.setAdapter(adapter);  // set the adapter to our viewPager
     }
 
     /**
@@ -194,7 +185,6 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     public void udpServer() throws IOException {
 
         String localIpAddress = getLocalIpAddress();
-
 
         while (true) {
             DatagramSocket socket = new DatagramSocket(9821, getBroadCastAddress());
@@ -312,11 +302,11 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
 
     @Override
-    public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
-        if (!b) {
-            youTubePlayer.loadVideo("S-Xm7s9eGxU");
+    public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean wasRestored) {
+        if (!wasRestored) {   // if the player is new and not just restored
+            youTubePlayer.loadVideo(playlistSongIDs.get(0)); // the first song on our debug list of songs
             this.player = youTubePlayer;
-            player.setShowFullscreenButton(false);
+            player.setShowFullscreenButton(false);  // prev & next buttons currently disabled from our player
             player.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
 
                 @Override
@@ -339,20 +329,22 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                 }
 
                 @Override
-                public void onVideoEnded() {
-                    if (playlistSongIDs.size() > 0) {
-                        playlistSongIDs.remove(0);
-                        historySongTitles.add(0, playlistSongTitles.remove(0));
-                        historyThumbnails.add(0, playlistThumbnails.remove(0));
-                        if(!playlistSongIDs.isEmpty()){
-                            player.loadVideo(playlistSongIDs.get(0));
+                public void onVideoEnded() {    // when video ends...
+                    if (playlistSongIDs.size() > 0) {   // if there are still songs to remove
+                        playlistSongIDs.remove(0);  // remove the top song id
+                        historySongTitles.add(0, playlistSongTitles.remove(0)); // remove the top song title and place it in front of historySongTitles
+                        historyThumbnails.add(0, playlistThumbnails.remove(0)); // remove the top song thumbnail and place it in front of historyThumbnails
+                        if(!playlistSongIDs.isEmpty()){ // if there are more videos to load
+                            player.loadVideo(playlistSongIDs.get(0)); // load the first video on the list
                         }
-                        playlistFragment.notifyDataSetChanged();
-                        if(historyFragment.isAdapterInitialized()) {
-                            historyFragment.notifyDataSetChanged();
+                        playlistFragment.notifyDataSetChanged(); // notify the playlist fragment of changes
+                                                                // NOTE: playlist fragment is always initialized since it is the first tab selected
+                                                                // if it is no longer the first tab, it must be checked for initialization
+                        if(historyFragment.isAdapterInitialized()) { // if the history fragment is initiailzed...
+                            historyFragment.notifyDataSetChanged(); // notify the history fragment of changes
                         }
                     } else {
-                        Log.d("LIST IS EMPTY", "serverMSG");
+                        Log.d("LIST IS EMPTY", "serverMSG"); // else, print that our list is empty to debug log
                     }
 
                 }
@@ -370,19 +362,17 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
     @Override
     public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
-
+        // do nothing
     }
 
+    // add song function for our search fragment
     public void addSong(String songID, String songTitle, String songThumbnail){
-        playlistSongIDs.add(songID);
-        playlistSongTitles.add(songTitle);
-        playlistThumbnails.add(songThumbnail);
-        playlistFragment.notifyDataSetChanged();
-        if(historyFragment.isAdapterInitialized()) {
-            historyFragment.notifyDataSetChanged();
-        }
-        if(!player.isPlaying()){
-            player.loadVideo(songID);
+        playlistSongIDs.add(songID);    // add the songID to playlist
+        playlistSongTitles.add(songTitle); // add the song title to playlist
+        playlistThumbnails.add(songThumbnail); // add the song thumbnail to playlist
+        playlistFragment.notifyDataSetChanged(); // notify playlistFragment of the changes
+        if(!player.isPlaying()){ // if there is currently no songs playing...
+            player.loadVideo(songID); // play the video added
         }
     }
 }
