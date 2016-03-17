@@ -3,6 +3,8 @@ package com.inasweaterpoorlyknit.hackpoly2016;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -203,6 +205,7 @@ public class SearchActivity extends AppCompatActivity implements
                         // put the song ID and song title into the intent
                         intent.putExtra("Song ID", searchResults.get(playingVideoIndex).getId().getVideoId());
                         intent.putExtra("Song Title", resultTitles.get(playingVideoIndex));
+                        intent.putExtra("Song Thumbnail", searchResults.get(playingVideoIndex).getSnippet().getThumbnails().getDefault().getUrl());
                         // set the result to be returned, use RESULT_OK to ensure that everything went as planned and return
                         setResult(RESULT_OK, intent);
                         finish();
@@ -240,4 +243,5 @@ public class SearchActivity extends AppCompatActivity implements
         super.onActivityResult(requestCode, resultCode, data);
 
     }
+
 }

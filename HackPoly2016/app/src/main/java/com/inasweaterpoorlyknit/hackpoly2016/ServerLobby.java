@@ -2,6 +2,8 @@ package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -40,7 +42,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     private ArrayList<String> playlistThumbnails;   // current playlist's song thumbnails
     private ArrayList<String> historySongTitles;    // previous playlist song titles
     private ArrayList<String> historyThumbnails;    // previous playlist song thumbnails
-    
+    private ArrayList<Bitmap> playlistDownloadThumbs;
     private YouTubePlayer player;                   // the YouTube player fragment
 
     private ViewPager viewPager;    // view pager will link our three fragments
@@ -63,6 +65,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         playlistThumbnails = new ArrayList<>();
         historySongTitles = new ArrayList<>();
         historyThumbnails = new ArrayList<>();
+        playlistDownloadThumbs = new ArrayList<>();
 
         // four hardcoded songs to assist with debugging
         playlistSongIDs.add("S-Xm7s9eGxU");
@@ -78,11 +81,13 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         playlistSongTitles.add("Wintercoats // Working on a Dream");
         playlistThumbnails.add("https://i.ytimg.com/vi/KHlnKXBVFVg/default.jpg");
 
+
         // initialize playlist fragment with current tracks
         playlistFragment = new PlaylistFragment();  // intialize playlist fragment
-        Bundle playlistFragArgs = new Bundle(); // create a bundle to send to playlist fragment
+        final Bundle playlistFragArgs = new Bundle(); // create a bundle to send to playlist fragment
         playlistFragArgs.putStringArrayList("songTitles", playlistSongTitles);  // put access to playlistSongTitles in bundle
         playlistFragArgs.putStringArrayList("songThumbnails", playlistThumbnails); // put access to playlistThumbnails in bundle
+        playlistFragArgs.putParcelableArrayList("downloadedThumb", playlistDownloadThumbs);
         playlistFragment.setArguments(playlistFragArgs);    // set the arguments of the playlistFragment with the new bundle
 
         // initialize search fragment
@@ -141,8 +146,11 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
             @Override
             public void run() {
                 try {
+                    for (int i = 0; i < playlistThumbnails.size(); i++) {
+                        playlistDownloadThumbs.add(getImage(playlistThumbnails.get(i)));
+                    }
+
                     udpServer();
-                    //runTCPSocket();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -266,25 +274,18 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                 InputStreamReader read = new InputStreamReader(in, "UTF-8");
                 BufferedReader br = new BufferedReader(read);
                 //read the data being sent from client.
-                String yCode = br.readLine();
-                String songTitle = br.readLine();
+                final String songId = br.readLine();
+                final String songTitle = br.readLine();
+                final String songThumbnail = br.readLine();
 
                 if (player != null) {
-
-                    playlistSongIDs.add(yCode);
-                    playlistSongTitles.add(songTitle);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            //listAdapter.notifyDataSetChanged();
+                            addSong(songId, songTitle, songThumbnail);
                         }
                     });
-                    Log.d(yCode, "from client");
-                    //Log.d(songTitle, "song Name");
-                    if (!player.isPlaying()) {
-                        player.loadVideo(playlistSongIDs.get(0));
-                        playlistSongIDs.remove(0);
-                    }
+
                 }
                 //Send playlist back to client
                 OutputStream out = socket.getOutputStream();
@@ -371,8 +372,27 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         playlistSongTitles.add(songTitle); // add the song title to playlist
         playlistThumbnails.add(songThumbnail); // add the song thumbnail to playlist
         playlistFragment.notifyDataSetChanged(); // notify playlistFragment of the changes
-        if(!player.isPlaying()){ // if there is currently no songs playing...
+        /*if(!player.isPlaying()){ // if there is currently no songs playing...
             player.loadVideo(songID); // play the video added
         }
+        */
+    }
+
+    public Bitmap getImage(String thumbnailURL) {
+        Bitmap thumbnail = null;          // thumbnail, set to null
+        try {
+            InputStream in = new java.net.URL(thumbnailURL).openStream(); // get an input stream from specified url
+            thumbnail = BitmapFactory.decodeStream(in);   // decode the inputStream as a Bitmap
+        } catch (Exception e) { // printe any errors
+            Log.e("Error", e.getMessage());
+            e.printStackTrace();
+        }
+        return thumbnail;   // return the thumbnail
+    }
+
+    public void addToDownloadedThumbs(String newSong) {
+        Bitmap tempBit = getImage(newSong);
+        playlistDownloadThumbs.add(tempBit);
+
     }
 }

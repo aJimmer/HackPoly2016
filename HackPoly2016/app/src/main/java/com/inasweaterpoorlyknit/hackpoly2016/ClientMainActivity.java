@@ -44,6 +44,7 @@ public class ClientMainActivity extends AppCompatActivity {
     SharedPreferences prefs;
     private String returnedVideoID;
     private String returnedVideoTitle;
+    private String returnVideoThumbnail;
     public String ipStr;
     TextView hostDisplay;
 
@@ -121,7 +122,7 @@ public class ClientMainActivity extends AppCompatActivity {
         }
     }
 
-    public void sendMessage(String songId, String songName){
+    public void sendMessage(String songId, String songName, String songThumbNail) {
         Socket socket = null;
         try {
             socket = new Socket(ipStr, 9000);
@@ -130,7 +131,7 @@ public class ClientMainActivity extends AppCompatActivity {
             PrintStream out = new PrintStream(os);
             out.println(songId);
             out.println(songName);
-
+            out.println(songThumbNail);
             //Recieve Playlist from server
             InputStream in = socket.getInputStream();
             InputStreamReader read = new InputStreamReader(in, "UTF-8");
@@ -165,10 +166,11 @@ public class ClientMainActivity extends AppCompatActivity {
                 if(data.getExtras().containsKey("Song ID")){
                     returnedVideoID = data.getStringExtra("Song ID");
                     returnedVideoTitle = data.getStringExtra("Song Title");
+                    returnVideoThumbnail = data.getStringExtra("Song Thumbnail");
                     Runnable task = new Runnable() {
                         @Override
                         public void run() {
-                            sendMessage(returnedVideoID, returnedVideoTitle);
+                            sendMessage(returnedVideoID, returnedVideoTitle, returnVideoThumbnail);
                         }
                     };
                     Thread newThread = new Thread(task);

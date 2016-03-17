@@ -25,14 +25,16 @@ public class PlaylistAdapter extends ArrayAdapter<String> {
     
     private final ArrayList<String> songTitles; // pointer to an ArrayList of songTitles that exists in the activity
     private final ArrayList<String> thumbnailURLs; // pointer to an ArrayList of songThumbnails that exists in the activity
+    private final ArrayList<Bitmap> downloadedThumbs; //pointer to an arraylist of previous downloaded thumbnails, hopefully will speed up the list generation
 
     // public constructor
-    public PlaylistAdapter(Activity context, ArrayList<String> songTitles, ArrayList<String> thumbnailURLs){
+    public PlaylistAdapter(Activity context, ArrayList<String> songTitles, ArrayList<String> thumbnailURLs, ArrayList<Bitmap> downloadedThumbs) {
         super(context, R.layout.song_row, songTitles);
         
         this.context = context; // set the context to the activity that called it
         this.songTitles = songTitles; // set the member songTitles to the passed songTitles
         this.thumbnailURLs = thumbnailURLs; // set the member thumbnailURLs to the passed thumbnailURLs
+        this.downloadedThumbs = downloadedThumbs;
     }
 
     
@@ -44,8 +46,11 @@ public class PlaylistAdapter extends ArrayAdapter<String> {
         if(thumbnailURLs != null) { // if there are thumbnail URLs(and any songs on the playlist)
             TextView songTitle = (TextView) rowView.findViewById(R.id.song_title); // get access to the row's song_title
             songTitle.setText(songTitles.get(position));    // set the text of the row's song_title to the song title at correct position
+            //ImageView songThumb = (ImageView)rowView.findViewById(R.id.video_thumbnail);
+            //songThumb.setImageBitmap(downloadedThumbs.get(position));
             new DownloadImageTask((ImageView) rowView.findViewById(R.id.video_thumbnail))
                     .execute(thumbnailURLs.get(position));  // download the thumbnail for that song and set as bitmap for the imageview
+
         }
         return rowView; // return the rowView that was created
     }

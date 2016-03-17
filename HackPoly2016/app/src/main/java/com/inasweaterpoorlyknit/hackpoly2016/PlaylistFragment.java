@@ -1,15 +1,19 @@
 package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
@@ -24,6 +28,7 @@ public class PlaylistFragment extends Fragment {
 
     private ArrayList<String> playlistTitles;    // Strings to hold the song titles
     private ArrayList<String> playlistThumbnails; // Strings to hold the thumbnail urls
+    private ArrayList<Bitmap> playlistDownloadThumbs; //Arraylist to hold bitmaps of thumbnails
 
     public PlaylistFragment() {
         // Required empty public constructor
@@ -42,7 +47,7 @@ public class PlaylistFragment extends Fragment {
 
         playlistListView = (ListView) rootView.findViewById(R.id.playlist_fragment_list_view);  // access the listview from xml
 
-        playlistAdapter = new PlaylistAdapter(getActivity(), playlistTitles, playlistThumbnails);   // initiailize the PlaylistAdapter with the ArrayList titles and ArrayList thumbnails urls
+        playlistAdapter = new PlaylistAdapter(getActivity(), playlistTitles, playlistThumbnails, playlistDownloadThumbs);   // initiailize the PlaylistAdapter with the ArrayList titles and ArrayList thumbnails urls
 
         playlistListView.setAdapter(playlistAdapter);   // set the adapter to our listview
         
@@ -55,6 +60,7 @@ public class PlaylistFragment extends Fragment {
         super.setArguments(bundle);
         playlistTitles = bundle.getStringArrayList("songTitles");   // set the playlistTitles to the ArrayList passed in the bundle
         playlistThumbnails = bundle.getStringArrayList("songThumbnails");   // set the playlistThumbnails to the ArrayList passed in the bundle
+        playlistDownloadThumbs = bundle.getParcelableArrayList("downloadedThumbs");
     }
 
     @Override
@@ -76,4 +82,5 @@ public class PlaylistFragment extends Fragment {
     public boolean isAdapterInitialized(){
         return !(playlistAdapter == null);  // return false if playlistAdapter is null
     }
+
 }

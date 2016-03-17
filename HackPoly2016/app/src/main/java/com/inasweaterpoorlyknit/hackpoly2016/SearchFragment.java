@@ -2,6 +2,8 @@ package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -39,7 +41,9 @@ public class SearchFragment extends Fragment {
     public List<SearchResult> searchResults; // list to hold the search results from youtube's search api
     public ArrayList<String> searchTitles;
     public ArrayList<String> searchThumbnails;
+    public ArrayList<Bitmap> downloadThumbnails;
     private ArrayAdapter<String> resultsAdapter;
+
 
     private String webKey;
 
@@ -115,6 +119,7 @@ public class SearchFragment extends Fragment {
                             for (SearchResult searchResult : searchResults) {
                                 searchTitles.add(searchResult.getSnippet().getTitle());
                                 searchThumbnails.add(searchResult.getSnippet().getThumbnails().getDefault().getUrl());
+
                             }
                             resultsAdapter.notifyDataSetChanged();
                         }
@@ -127,7 +132,7 @@ public class SearchFragment extends Fragment {
 
         // if an item in the list is clicked, save it's current index in the list view
         searchListView = (ListView) rootView.findViewById(R.id.search_fragment_list_view);
-        resultsAdapter = new PlaylistAdapter(getActivity(), searchTitles, searchThumbnails);
+        resultsAdapter = new PlaylistAdapter(getActivity(), searchTitles, searchThumbnails, downloadThumbnails);
         searchListView.setAdapter(resultsAdapter);
         searchListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -194,5 +199,23 @@ public class SearchFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
+    }
+
+    public Bitmap getImage(String thumbnailURL) {
+        Bitmap thumbnail = null;          // thumbnail, set to null
+        try {
+            InputStream in = new java.net.URL(thumbnailURL).openStream(); // get an input stream from specified url
+            thumbnail = BitmapFactory.decodeStream(in);   // decode the inputStream as a Bitmap
+        } catch (Exception e) { // printe any errors
+            Log.e("Error", e.getMessage());
+            e.printStackTrace();
+        }
+        return thumbnail;   // return the thumbnail
+    }
+
+    public void addToDownloadedThumbs(String newSong) {
+        Bitmap tempBit = getImage(newSong);
+        downloadThumbnails.add(tempBit);
+
     }
 }
