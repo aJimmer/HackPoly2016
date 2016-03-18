@@ -202,6 +202,18 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     {
         super.onDestroy();
         unregisterReceiver(receiver);
+        manager.removeGroup(channel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Log.d(WifiP2pReceiver.logType, "Party Disconnected");
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                Log.d(WifiP2pReceiver.logType, "Party still running");
+
+            }
+        });
     }
 
 
@@ -446,6 +458,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
             }
         });
+        //receiver.createGroup();
 
     }
 }

@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.NetworkInfo;
+import android.net.wifi.WpsInfo;
+import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
@@ -39,13 +41,22 @@ public class WifiP2pReceiver extends BroadcastReceiver{
                 //Do something with list of peers
                 mPeerList.clear();
                 mPeerList.addAll(peers.getDeviceList());
+                for(int i = 0; i < mPeerList.size(); i ++)
+                {
+                    WifiP2pDevice tempDevice = mPeerList.get(i);
+                    Log.d(logType, "Found Device at address: " + tempDevice.deviceAddress);
+                    //connect(tempDevice);
+                }
             }
         };
-        if(activity instanceof ServerLobby)
-            serverLobby = (ServerLobby)activity;
-        else if(activity instanceof  ClientMainActivity)
-            clientMainActivity = (ClientMainActivity)activity;
-
+        if(activity instanceof ServerLobby) {
+            serverLobby = (ServerLobby) activity;
+            clientMainActivity = null;
+        }
+        else if(activity instanceof  ClientMainActivity) {
+            clientMainActivity = (ClientMainActivity) activity;
+            serverLobby = null;
+        }
 
     }
     @Override
@@ -71,6 +82,15 @@ public class WifiP2pReceiver extends BroadcastReceiver{
             if(mManager != null)
             {
                 mManager.requestPeers(mChannel, mPeerListListener);
+            }
+            if(serverLobby != null)
+            {
+                WifiP2pDevice tempDevice = null;
+                for(int i = 0; i < mPeerList.size(); i++)
+                {
+                    tempDevice = mPeerList.get(i);
+                    connect(tempDevice);
+                }
             }
         }
         else if(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action))
@@ -119,10 +139,63 @@ public class WifiP2pReceiver extends BroadcastReceiver{
 
             //Respond to this device's wifi state changing
             WifiP2pDevice thisDevice = intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
+
+            if(serverLobby != null)
+            {
+                WifiP2pConfig config = new WifiP2pConfig();
+                config.deviceAddress = thisDevice.deviceAddress;
+                config.groupOwnerIntent = 15;
+            }
             Log.d(logType, "This device name: " + thisDevice.deviceName);
             Log.d(logType, "This device addreess: " + thisDevice.deviceAddress);
         }
+    }
+    public void createGroup()
+    {
+        //if this activity is a server
+        if(serverLobby != null)
+        {
+            mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
+                @Override
+                public void onSuccess() {
+                    Log.d(logType, "WIFI p2p group created");
 
+                    //Connnect all peers that can be
+                    WifiP2pDevice tempDevice = null;
+                    for(int i = 0; i < mPeerList.size(); i++)
+                    {
+                        tempDevice = mPeerList.get(i);
+                        connect(tempDevice);
+                    }
+                }
+
+                @Override
+                public void onFailure(int reason) {
+                    Log.d(logType, "WIFI p2p group not created");
+
+                }
+            });
+        }
+
+    }
+    public void connect(final WifiP2pDevice device)
+    {
+        WifiP2pConfig config = new WifiP2pConfig();
+        config.deviceAddress = device.deviceAddress;
+        config.wps.setup = WpsInfo.PBC;
+        mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Log.d(logType, "Successfully connected to " + device.deviceName);
+
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                Log.d(logType, "Could not connect to " + device.deviceName);
+
+            }
+        });
 
     }
 }
