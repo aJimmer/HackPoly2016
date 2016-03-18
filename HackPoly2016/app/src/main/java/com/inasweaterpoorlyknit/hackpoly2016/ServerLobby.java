@@ -1,12 +1,14 @@
 package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.content.Context;
+import android.content.IntentFilter;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
@@ -51,6 +53,11 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     private PlaylistFragment historyFragment;       // fragment to display playlist history
     private PlaylistFragment playlistFragment;      // fragment to display the current playlist
     private SearchFragment searchFragment;          // fragment to allow searching and adding new songs
+
+    private WifiP2pManager manager;                 //Wifi p2p manager for communication to clients
+    private WifiP2pManager.Channel channel;         //Wifi p2p needed for manager
+    private WifiP2pReceiver receiver;               //Broadcast reciever class that handles all communctionation bewtween servers and clients
+    private IntentFilter intentFilter;              //Intent filter that listens for WIFI p2p events
 
     private String androidKey;                      // android developer key
 
@@ -171,6 +178,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         Thread thread = new Thread(serverUDPThread);
         thread.start();
         tcpThread.start();
+        registerReceiver();
 
     }
 
@@ -183,6 +191,20 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         adapter.addFragment(historyFragment, getResources().getString(R.string.title_history));     // history fragments
         viewPager.setAdapter(adapter);  // set the adapter to our viewPager
     }
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        registerReceiver(receiver, intentFilter);
+    }
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        unregisterReceiver(receiver);
+    }
+
+
 
     /**
      * Runs UDP Server socket that listens for new clients trying to connect
@@ -393,6 +415,37 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     public void addToDownloadedThumbs(String newSong) {
         Bitmap tempBit = getImage(newSong);
         playlistDownloadThumbs.add(tempBit);
+
+    }
+
+    /**
+     * Initialize all the compents needed for WIFI P2P communication
+     */
+    public void registerReceiver()
+    {
+        manager = (WifiP2pManager)getSystemService(Context.WIFI_P2P_SERVICE);
+        channel = manager.initialize(this, getMainLooper(), null);
+        receiver = new WifiP2pReceiver(manager, channel, this);
+
+        intentFilter = new IntentFilter();
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+
+        registerReceiver(receiver, intentFilter);
+        manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Log.d(WifiP2pReceiver.logType, "Discover Succeeded");
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                Log.d(WifiP2pReceiver.logType, "Discover Failed");
+
+            }
+        });
 
     }
 }

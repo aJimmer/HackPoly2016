@@ -2,10 +2,12 @@ package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -48,6 +50,10 @@ public class ClientMainActivity extends AppCompatActivity {
     public String ipStr;
     TextView hostDisplay;
 
+    private WifiP2pManager manager;
+    private WifiP2pManager.Channel channel;
+    private WifiP2pReceiver receiver;
+    private IntentFilter  intentFilter;
     private static final int SEARCH_CODE = 2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +103,19 @@ public class ClientMainActivity extends AppCompatActivity {
                 searchSong();
             }
         });
+        registerReceiver();
+    }
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        registerReceiver(receiver, intentFilter);
+    }
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        unregisterReceiver(receiver);
     }
 
     public void searchSong() {
@@ -252,6 +271,33 @@ public class ClientMainActivity extends AppCompatActivity {
         String [] ipValues = receivedString.split(Pattern.quote("."));
 
         return ipValues[3] + "." + ipValues[2] + "." + ipValues[1] + "." + ipValues[0];
+    }
+    public void registerReceiver()
+    {
+        manager = (WifiP2pManager)getSystemService(Context.WIFI_P2P_SERVICE);
+        channel = manager.initialize(this, getMainLooper(), null);
+        receiver = new WifiP2pReceiver(manager, channel, this);
+
+        intentFilter = new IntentFilter();
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+
+        registerReceiver(receiver, intentFilter);
+        manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Log.d(WifiP2pReceiver.logType, "Discover Succeeded");
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                Log.d(WifiP2pReceiver.logType, "Discover Failed");
+
+            }
+        });
+
     }
 
 
