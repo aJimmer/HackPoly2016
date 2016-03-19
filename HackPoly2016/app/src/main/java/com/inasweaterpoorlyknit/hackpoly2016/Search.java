@@ -17,9 +17,6 @@ import java.io.IOException;
 import java.util.List;
 
 public class Search {
-    // variable holding the filename of the file that contains the developer's API key
-    private static final String DEVELOPER_KEY_FILENAME = "DeveloperKey.java";
-
     // number of videos we want the search function to return
     public static final long NUMBER_OF_VIDEOS_TO_RETURN = 10;
 

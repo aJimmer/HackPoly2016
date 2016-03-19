@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -15,7 +16,6 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -37,13 +37,15 @@ public class SearchFragment extends Fragment {
     private ListView searchListView;
     private FloatingActionButton addToPlaylistButton;
 
-    private Object lock = new Object(); // a lock object used for synchronization with task
+    private final Object lock = new Object(); // a lock object used for synchronization with task
     public List<SearchResult> searchResults; // list to hold the search results from youtube's search api
-    public ArrayList<String> searchTitles;
-    public ArrayList<String> searchThumbnails;
-    public ArrayList<Bitmap> downloadThumbnails;
-    private ArrayAdapter<String> resultsAdapter;
 
+    public ArrayList<String> searchTitles;
+    public ArrayList<Bitmap> searchThumbnails;
+
+    private long numSearchResults;
+
+    private PlaylistAdapter resultsAdapter;
 
     private String webKey;
 
@@ -62,6 +64,8 @@ public class SearchFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_search, container, false);
+
+        numSearchResults = Search.NUMBER_OF_VIDEOS_TO_RETURN;
 
         selectedVideoIndex = -1;
         searchTitles = new ArrayList<>();
@@ -115,13 +119,12 @@ public class SearchFragment extends Fragment {
 
                         if(searchResults != null) { // if there are results to return
                             searchTitles.clear();  // first clear the result Titles
+                            searchThumbnails.clear(); // and the result Thumbnails
                             // for each searchResult, set it in the result Titles
                             for (SearchResult searchResult : searchResults) {
                                 searchTitles.add(searchResult.getSnippet().getTitle());
-                                searchThumbnails.add(searchResult.getSnippet().getThumbnails().getDefault().getUrl());
-
+                                new DownloadThumbnailTask().execute(searchResult.getSnippet().getThumbnails().getDefault().getUrl());
                             }
-                            resultsAdapter.notifyDataSetChanged();
                         }
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -132,7 +135,7 @@ public class SearchFragment extends Fragment {
 
         // if an item in the list is clicked, save it's current index in the list view
         searchListView = (ListView) rootView.findViewById(R.id.search_fragment_list_view);
-        resultsAdapter = new PlaylistAdapter(getActivity(), searchTitles, searchThumbnails, downloadThumbnails);
+        resultsAdapter = new PlaylistAdapter(getActivity(), searchTitles, searchThumbnails);
         searchListView.setAdapter(resultsAdapter);
         searchListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -149,8 +152,8 @@ public class SearchFragment extends Fragment {
                 if (selectedVideoIndex >= 0) {
                     // if user selected any video add to playlist
                     ((ServerLobby) getActivity()).addSong(searchResults.get(selectedVideoIndex).getId().getVideoId(),
-                            searchResults.get(selectedVideoIndex).getSnippet().getTitle(),
-                            searchResults.get(selectedVideoIndex).getSnippet().getThumbnails().getDefault().getUrl());
+                            searchTitles.get(selectedVideoIndex),
+                            searchThumbnails.get(selectedVideoIndex));
                     Toast.makeText(view.getContext(), "Song added to current playlist.", Toast.LENGTH_SHORT).show();
                 } else {
                     // inform user they must search for a video first
@@ -201,21 +204,26 @@ public class SearchFragment extends Fragment {
         super.onDetach();
     }
 
-    public Bitmap getImage(String thumbnailURL) {
-        Bitmap thumbnail = null;          // thumbnail, set to null
-        try {
-            InputStream in = new java.net.URL(thumbnailURL).openStream(); // get an input stream from specified url
-            thumbnail = BitmapFactory.decodeStream(in);   // decode the inputStream as a Bitmap
-        } catch (Exception e) { // printe any errors
-            Log.e("Error", e.getMessage());
-            e.printStackTrace();
+    // AsyncTask to download the thumbnail images
+    public class DownloadThumbnailTask extends AsyncTask<String, Void, Bitmap> {
+        // downloads any number of URLs in the background
+        protected Bitmap doInBackground(String... urls) {
+            String urlDisplay = urls[0];    // save the first url
+            Bitmap thumbnail = null;          // thumbnail, set to null
+            try {
+                InputStream in = new java.net.URL(urlDisplay).openStream(); // get an input stream from specified url
+                thumbnail = BitmapFactory.decodeStream(in);   // decode the inputStream as a Bitmap
+            } catch (Exception e) { // printe any errors
+                Log.e("Error", e.getMessage());
+                e.printStackTrace();
+            }
+            return thumbnail;   // return the thumbnail
         }
-        return thumbnail;   // return the thumbnail
-    }
 
-    public void addToDownloadedThumbs(String newSong) {
-        Bitmap tempBit = getImage(newSong);
-        downloadThumbnails.add(tempBit);
-
+        // called after bitmap is loaded and returned from doInBackground()
+        protected void onPostExecute(Bitmap result) {
+            searchThumbnails.add(result); // add the song thumbnail to playlist
+            resultsAdapter.notifyDataSetChanged();
+        }
     }
 }
