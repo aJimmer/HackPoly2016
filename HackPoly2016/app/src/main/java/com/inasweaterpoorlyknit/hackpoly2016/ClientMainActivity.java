@@ -3,16 +3,21 @@ package com.inasweaterpoorlyknit.hackpoly2016;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,16 +53,24 @@ public class ClientMainActivity extends AppCompatActivity {
     public String ipStr;
     TextView hostDisplay;
 
+    public static final int GET_PLAYLIST = 1;
+    public static final int ADD_NEW_SONG = 3;
+    public static final int VOTE_SONG = 4;
+    public static final int GET_NOW_PLAYING = 5;
     private static final int SEARCH_CODE = 2;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client_main);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.client_toolbar);
+        setSupportActionBar(toolbar);
+        debugCardView();
         ipStr ="";
-        clientList = (ListView)findViewById(R.id.client_list);
+        //clientList = (ListView)findViewById(R.id.client_list);
         songList = new ArrayList<>();
-        listAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, songList);
-        clientList.setAdapter(listAdapter);
+        //listAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, songList);
+        //clientList.setAdapter(listAdapter);
         FloatingActionButton search_button = (FloatingActionButton)findViewById(R.id.find_button);
         search_button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,6 +79,7 @@ public class ClientMainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
 
         connectToHost = (Button)findViewById(R.id.connectToHost);
 
@@ -253,7 +267,41 @@ public class ClientMainActivity extends AppCompatActivity {
 
         return ipValues[3] + "." + ipValues[2] + "." + ipValues[1] + "." + ipValues[0];
     }
+    public Bitmap getImage(String thumbnailUrl)
+    {
+        Bitmap thumbail = null;
+        try {
+            InputStream in = new java.net.URL(thumbnailUrl).openStream();
+            thumbail = BitmapFactory.decodeStream(in);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return thumbail;
 
+    }
+    public void debugCardView()
+    {
+        //debug cardView
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                final CardView cardView =(CardView)findViewById(R.id.client_card);
+
+                final ImageView cardImage = (ImageView)cardView.findViewById(R.id.cardThumbail);
+                final Bitmap testThumb = getImage("https://i.ytimg.com/vi/S-Xm7s9eGxU/default.jpg");
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        cardImage.setImageBitmap(testThumb);
+
+                    }
+                });
+
+            }
+        };
+       Thread debugThread = new Thread(runnable);
+        debugThread.start();
+    }
 
 
 }
