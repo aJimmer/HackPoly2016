@@ -67,10 +67,10 @@ public class ClientMainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         debugCardView();
         ipStr ="";
-        //clientList = (ListView)findViewById(R.id.client_list);
+        clientList = (ListView)findViewById(R.id.client_list);
         songList = new ArrayList<>();
-        //listAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, songList);
-        //clientList.setAdapter(listAdapter);
+        listAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, songList);
+        clientList.setAdapter(listAdapter);
         FloatingActionButton search_button = (FloatingActionButton)findViewById(R.id.find_button);
         search_button.setOnClickListener(new View.OnClickListener() {
             @Override
