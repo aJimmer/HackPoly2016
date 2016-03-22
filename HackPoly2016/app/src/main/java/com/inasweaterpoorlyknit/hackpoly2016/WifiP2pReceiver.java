@@ -34,7 +34,7 @@ public class WifiP2pReceiver extends BroadcastReceiver{
     private ClientMainActivity clientMainActivity;
     private HashMap<String, Boolean> isConnected;
     public static String mServerIp;
-
+    public static int PORT = 5011;
 
     public WifiP2pReceiver(WifiP2pManager manager, WifiP2pManager.Channel channel, AppCompatActivity activity)
     {
@@ -146,6 +146,7 @@ public class WifiP2pReceiver extends BroadcastReceiver{
                             Runnable networkTask = new Runnable() {
                                 @Override
                                 public void run() {
+                                    mServerIp = info.groupOwnerAddress.getHostAddress();
                                     if(info.isGroupOwner)
                                     {
                                         //Run WIFI P2p Server
@@ -156,6 +157,9 @@ public class WifiP2pReceiver extends BroadcastReceiver{
                                     else
                                     {
                                         //Run WIFI P2P Client
+                                        if (mServerIp != null) {
+                                            clientMainActivity.setHostIpAddress(mServerIp);
+                                        }
                                         Log.d(logType, info.groupOwnerAddress.getHostName());
                                     }
 

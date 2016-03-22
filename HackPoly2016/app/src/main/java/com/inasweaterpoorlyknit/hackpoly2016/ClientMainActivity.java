@@ -85,11 +85,13 @@ public class ClientMainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         //testConnection();
-                        try {
+                        testServer();
+                        /*try {
+
                             readBroadcast();
                         } catch (IOException e) {
                             e.printStackTrace();
-                        }
+                        }*/
                     }
                 };
                 Thread newThread = new Thread(task);
@@ -300,9 +302,22 @@ public class ClientMainActivity extends AppCompatActivity {
         });
 
     }
-
     public void setHostIpAddress(String groupOwnerIpAddress) {
         this.hostAddress = groupOwnerIpAddress;
         Log.d(WifiP2pReceiver.logType, "Server's address: " + hostAddress);
     }
+
+    public void testServer() {
+        try {
+            Socket socket = new Socket(hostAddress, 9812);
+            OutputStream out = socket.getOutputStream();
+            PrintStream printStream = new PrintStream(out);
+            printStream.println("IT works");
+            socket.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

@@ -165,7 +165,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         Runnable serverTCPThread = new Runnable() {
             @Override
             public void run() {
-                runTCPSocket();
+                //runTCPSocket()
 
             }
         };
@@ -174,14 +174,14 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         Thread thread = new Thread(serverUDPThread);
         thread.start();
         tcpThread.start();
-        //Discover every 10 seconds
+        //Discover every 3 seconds
         Runnable discoverTask = new Runnable() {
             @Override
             public void run() {
                 while (true) {
                     try {
-                        //Every 10 seconds scan for new peers
-                        Thread.sleep(10000);
+                        //Every 3 seconds scan for new peers
+                        Thread.sleep(3000);
                         manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
                             @Override
                             public void onSuccess() {
@@ -482,5 +482,62 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         });
         //receiver.createGroup();
 
+    }
+
+    public void p2pTest() {
+        try {
+            ServerSocket serverSocket = new ServerSocket(9812);
+            while (true) {
+                Socket socket = serverSocket.accept();
+                InputStream in = socket.getInputStream();
+                InputStreamReader isr = new InputStreamReader(in, "UTF-8");
+                BufferedReader br = new BufferedReader(isr);
+                Log.d(WifiP2pReceiver.logType, br.readLine());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Method that runs p2p server socket
+     * and listens for all client sockets
+     */
+    public void WIFIP2PServer() {
+        try {
+            ServerSocket serverSocket = new ServerSocket(WifiP2pReceiver.PORT);
+
+            while (true) {
+                Socket socket = serverSocket.accept();
+                InputStream in = socket.getInputStream();
+                InputStreamReader read = new InputStreamReader(in, "UTF-8");
+                BufferedReader br = new BufferedReader(read);
+                //read the data being sent from client.
+                final String songId = br.readLine();
+                final String songTitle = br.readLine();
+                final String songThumbnail = br.readLine();
+                final Bitmap thumbNail = getImage(songThumbnail);
+                if (player != null) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            //addSong(songId, songTitle, thumbNail);
+                        }
+                    });
+
+                }
+                //Send playlist back to client
+                OutputStream out = socket.getOutputStream();
+                PrintStream outValue = new PrintStream(out);
+                outValue.println(playlistSongTitles.size()); // send size of songname Array
+                for (int i = 0; i < playlistSongTitles.size(); i++) {
+                    outValue.println(playlistSongTitles.get(i));
+                }
+            }
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
