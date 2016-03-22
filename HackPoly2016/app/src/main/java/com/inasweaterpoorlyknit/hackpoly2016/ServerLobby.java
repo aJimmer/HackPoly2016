@@ -147,16 +147,12 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         } else {
             Log.d("androidKey: ", "failed to initialize");
         }
-
+        registerReceiver();
         //Run UDP server socket on new thread[since there should be no networking on main thread]
         Runnable serverUDPThread = new Runnable() {
             @Override
             public void run() {
                 try {
-                    for (int i = 0; i < playlistThumbnails.size(); i++) {
-                        playlistDownloadThumbs.add(getImage(playlistThumbnails.get(i)));
-                    }
-
                     udpServer();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -178,8 +174,34 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         Thread thread = new Thread(serverUDPThread);
         thread.start();
         tcpThread.start();
-        registerReceiver();
+        //Discover every 10 seconds
+        Runnable discoverTask = new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        //Every 10 seconds scan for new peers
+                        Thread.sleep(10000);
+                        manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
+                            @Override
+                            public void onSuccess() {
+                                Log.d(WifiP2pReceiver.logType, "Discover Succeeded");
+                            }
 
+                            @Override
+                            public void onFailure(int reason) {
+                                Log.d(WifiP2pReceiver.logType, "Discover Succeeded");
+
+                            }
+                        });
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
+        Thread discoverThread = new Thread(discoverTask);
+        discoverThread.start();
     }
 
     //   setupViewPager is a layout manager that allows us to flip left and right through fragments

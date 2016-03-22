@@ -49,7 +49,7 @@ public class ClientMainActivity extends AppCompatActivity {
     private String returnVideoThumbnail;
     public String ipStr;
     TextView hostDisplay;
-
+    private String hostAddress;
     private WifiP2pManager manager;
     private WifiP2pManager.Channel channel;
     private WifiP2pReceiver receiver;
@@ -60,6 +60,7 @@ public class ClientMainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client_main);
         ipStr ="";
+        hostAddress = null;
         clientList = (ListView)findViewById(R.id.client_list);
         songList = new ArrayList<>();
         listAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, songList);
@@ -300,6 +301,8 @@ public class ClientMainActivity extends AppCompatActivity {
 
     }
 
-
-
+    public void setHostIpAddress(String groupOwnerIpAddress) {
+        this.hostAddress = groupOwnerIpAddress;
+        Log.d(WifiP2pReceiver.logType, "Server's address: " + hostAddress);
+    }
 }

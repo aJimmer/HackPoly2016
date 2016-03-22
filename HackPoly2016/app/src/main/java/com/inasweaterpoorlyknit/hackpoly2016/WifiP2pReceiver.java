@@ -10,25 +10,31 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * This class will handle all the Wifi P2P setup and communication
  * Created by Raymond Arias on 3/18/16.
  */
 public class WifiP2pReceiver extends BroadcastReceiver{
-    public static String logType = "WIFI P2p";
+    public static String logType = "WIFI P2P";
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
     private WifiP2pManager.PeerListListener mPeerListListener;
     private WifiP2pDeviceList mDeviceList;
+    private WifiP2pDevice mThisDevice;
     private ArrayList<WifiP2pDevice> mPeerList;
     private ServerLobby serverLobby;
     private ClientMainActivity clientMainActivity;
+    private HashMap<String, Boolean> isConnected;
+    public static String mServerIp;
+
 
     public WifiP2pReceiver(WifiP2pManager manager, WifiP2pManager.Channel channel, AppCompatActivity activity)
     {
@@ -47,6 +53,25 @@ public class WifiP2pReceiver extends BroadcastReceiver{
                     Log.d(logType, "Found Device at address: " + tempDevice.deviceAddress);
                     //connect(tempDevice);
                 }
+                //Look through all ip addresses to find if any have disconnected
+                //if so set there value to false
+                for (Map.Entry<String, Boolean> entry : isConnected.entrySet()) {
+                    boolean isInPeerList = false;
+                    String deviceIPAddress = entry.getKey();
+
+                    //find ip address in list if found
+                    for (int i = 0; i < mPeerList.size(); i++) {
+                        if (mPeerList.get(i).deviceAddress.equals(deviceIPAddress)) {
+                            isInPeerList = true;
+                            break;
+                        }
+                    }
+                    if (!isInPeerList) {
+                        entry.setValue(false);
+                    }
+                }
+
+
             }
         };
         if(activity instanceof ServerLobby) {
@@ -57,6 +82,9 @@ public class WifiP2pReceiver extends BroadcastReceiver{
             clientMainActivity = (ClientMainActivity) activity;
             serverLobby = null;
         }
+        mThisDevice = null;
+        isConnected = new HashMap<>();
+        mServerIp = null;
 
     }
     @Override
@@ -85,11 +113,21 @@ public class WifiP2pReceiver extends BroadcastReceiver{
             }
             if(serverLobby != null)
             {
+                if (mThisDevice.isGroupOwner()) {
+                    Log.d(WifiP2pReceiver.logType, "Server is groupOwner");
+                }
                 WifiP2pDevice tempDevice = null;
+                //mServerIp = mThisDevice.deviceName;
                 for(int i = 0; i < mPeerList.size(); i++)
                 {
                     tempDevice = mPeerList.get(i);
-                    connect(tempDevice);
+                    if (!isConnected.containsKey(tempDevice.deviceAddress)) {
+                        isConnected.put(tempDevice.deviceAddress, true);
+                        connect(tempDevice);
+                    } else if (!isConnected.get(tempDevice.deviceAddress)) {
+                        isConnected.put(tempDevice.deviceAddress, true);
+                        connect(tempDevice);
+                    }
                 }
             }
         }
@@ -97,11 +135,9 @@ public class WifiP2pReceiver extends BroadcastReceiver{
         {
             //Respond to new connections or disconnections
             final NetworkInfo networkInfo = (NetworkInfo)intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
-
             if(networkInfo != null && networkInfo.isConnected())
             {
                 //Open new connection
-
                 mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener() {
                     @Override
                     public void onConnectionInfoAvailable(final WifiP2pInfo info) {
@@ -113,10 +149,14 @@ public class WifiP2pReceiver extends BroadcastReceiver{
                                     if(info.isGroupOwner)
                                     {
                                         //Run WIFI P2p Server
+                                        //Log.d(logType, info.groupOwnerAddress.getHostName());
+
+
                                     }
                                     else
                                     {
                                         //Run WIFI P2P Client
+                                        Log.d(logType, info.groupOwnerAddress.getHostName());
                                     }
 
                                 }
@@ -127,7 +167,8 @@ public class WifiP2pReceiver extends BroadcastReceiver{
                         }
                         else
                         {
-                            Log.d(logType, "Conection lost");
+                            Log.d(logType, "Connection lost");
+
                         }
                     }
                 });
@@ -136,15 +177,15 @@ public class WifiP2pReceiver extends BroadcastReceiver{
         }
         else if(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action))
         {
-
             //Respond to this device's wifi state changing
             WifiP2pDevice thisDevice = intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
-
+            mThisDevice = thisDevice;
             if(serverLobby != null)
             {
                 WifiP2pConfig config = new WifiP2pConfig();
                 config.deviceAddress = thisDevice.deviceAddress;
                 config.groupOwnerIntent = 15;
+
             }
             Log.d(logType, "This device name: " + thisDevice.deviceName);
             Log.d(logType, "This device addreess: " + thisDevice.deviceAddress);
@@ -180,9 +221,11 @@ public class WifiP2pReceiver extends BroadcastReceiver{
     }
     public void connect(final WifiP2pDevice device)
     {
-        WifiP2pConfig config = new WifiP2pConfig();
+        final WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = device.deviceAddress;
         config.wps.setup = WpsInfo.PBC;
+        config.groupOwnerIntent = 15;
+
         mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
@@ -193,6 +236,7 @@ public class WifiP2pReceiver extends BroadcastReceiver{
             @Override
             public void onFailure(int reason) {
                 Log.d(logType, "Could not connect to " + device.deviceName);
+                isConnected.put(config.deviceAddress, false);
 
             }
         });
