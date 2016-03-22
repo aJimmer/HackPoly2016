@@ -9,6 +9,7 @@ import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
@@ -41,16 +42,17 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
     private ArrayList<String> playlistSongIDs;      // current playlist's song IDs
     private ArrayList<String> playlistSongTitles;   // current playlist's song titles
-    private ArrayList<String> playlistThumbnails;   // current playlist's song thumbnails
+    private ArrayList<Bitmap> playlistThumbnails;   // current playlist's song thumbnails
+
     private ArrayList<String> historySongTitles;    // previous playlist song titles
-    private ArrayList<String> historyThumbnails;    // previous playlist song thumbnails
-    private ArrayList<Bitmap> playlistDownloadThumbs;
+    private ArrayList<Bitmap> historyThumbnails;    // previous playlist song thumbnails
+
     private YouTubePlayer player;                   // the YouTube player fragment
 
     private ViewPager viewPager;    // view pager will link our three fragments
     private TabLayout tabLayout;    // the tabs that initiate the change between fragments
     
-    private PlaylistFragment historyFragment;       // fragment to display playlist history
+    private HistoryFragment historyFragment;       // fragment to display playlist history
     private PlaylistFragment playlistFragment;      // fragment to display the current playlist
     private SearchFragment searchFragment;          // fragment to allow searching and adding new songs
 
@@ -72,40 +74,24 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         playlistThumbnails = new ArrayList<>();
         historySongTitles = new ArrayList<>();
         historyThumbnails = new ArrayList<>();
-        playlistDownloadThumbs = new ArrayList<>();
 
         // four hardcoded songs to assist with debugging
-        playlistSongIDs.add("S-Xm7s9eGxU");
-        playlistSongTitles.add("Erik Satie - Gymnopédie No.1");
-        playlistThumbnails.add("https://i.ytimg.com/vi/S-Xm7s9eGxU/default.jpg");
-        playlistSongIDs.add("HyozVHz9Ml4");
-        playlistSongTitles.add("Laurence Equilbey - Cantique de Jean Racine - opus 11 (In Paradisum)");
-        playlistThumbnails.add("https://i.ytimg.com/vi/HyozVHz9Ml4/default.jpg");
-        playlistSongIDs.add("iqb60rxl96I");
-        playlistSongTitles.add("Eluvium - Radio Ballet");
-        playlistThumbnails.add("https://i.ytimg.com/vi/iqb60rxl96I/default.jpg");
-        playlistSongIDs.add("KHlnKXBVFVg");
-        playlistSongTitles.add("Wintercoats // Working on a Dream");
-        playlistThumbnails.add("https://i.ytimg.com/vi/KHlnKXBVFVg/default.jpg");
-
+        this.addSong("S-Xm7s9eGxU", "Erik Satie - Gymnopédie No.1", "https://i.ytimg.com/vi/S-Xm7s9eGxU/default.jpg");
+        this.addSong("HyozVHz9Ml4", "Laurence Equilbey - Cantique de Jean Racine - opus 11 (In Paradisum)", "https://i.ytimg.com/vi/HyozVHz9Ml4/default.jpg");
+        this.addSong("iqb60rxl96I", "Eluvium - Radio Ballet", "https://i.ytimg.com/vi/iqb60rxl96I/default.jpg");
+        this.addSong("KHlnKXBVFVg", "Wintercoats // Working on a Dream", "https://i.ytimg.com/vi/KHlnKXBVFVg/default.jpg");
 
         // initialize playlist fragment with current tracks
         playlistFragment = new PlaylistFragment();  // intialize playlist fragment
-        final Bundle playlistFragArgs = new Bundle(); // create a bundle to send to playlist fragment
-        playlistFragArgs.putStringArrayList("songTitles", playlistSongTitles);  // put access to playlistSongTitles in bundle
-        playlistFragArgs.putStringArrayList("songThumbnails", playlistThumbnails); // put access to playlistThumbnails in bundle
-        playlistFragArgs.putParcelableArrayList("downloadedThumb", playlistDownloadThumbs);
-        playlistFragment.setArguments(playlistFragArgs);    // set the arguments of the playlistFragment with the new bundle
+        playlistFragment.setPlaylistAdapter(this, playlistSongTitles, playlistThumbnails);
+
 
         // initialize search fragment
         searchFragment = new SearchFragment();
 
         // initialize history fragment
-        historyFragment = new PlaylistFragment();  // intialize history fragment
-        Bundle historyFragArgs = new Bundle();  // create a bundle to send to playlist fragment
-        historyFragArgs.putStringArrayList("songTitles", historySongTitles); // put access to historySongTitles in bundle
-        historyFragArgs.putStringArrayList("songThumbnails", historyThumbnails); // put access to historyThumbnails in bundle
-        historyFragment.setArguments(historyFragArgs);  // set the arguments of the historyFragment with the new bundle
+        historyFragment = new HistoryFragment();  // intialize history fragment
+        historyFragment.setPlaylistAdapter(this, historySongTitles, historyThumbnails);
 
         // initialize the viewPager to link to the three fragments(Playlist, Search, History)
         viewPager = (ViewPager) findViewById(R.id.viewpager);
@@ -165,7 +151,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         Runnable serverTCPThread = new Runnable() {
             @Override
             public void run() {
-                //runTCPSocket()
+                runTCPSocket();
 
             }
         };
@@ -268,13 +254,8 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
             sendSocket.close();
             socket.close();
 
-
             Log.d("Broadcasting", "Broadcast " + localIpAddress + " to network");
-
-
         }
-
-
     }
 
     /**
@@ -341,7 +322,6 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                             addSong(songId, songTitle, songThumbnail);
                         }
                     });
-
                 }
                 //Send playlist back to client
                 OutputStream out = socket.getOutputStream();
@@ -356,7 +336,6 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
             e.printStackTrace();
         }
     }
-
 
     @Override
     public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean wasRestored) {
@@ -394,12 +373,8 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                         if(!playlistSongIDs.isEmpty()){ // if there are more videos to load
                             player.loadVideo(playlistSongIDs.get(0)); // load the first video on the list
                         }
-                        playlistFragment.notifyDataSetChanged(); // notify the playlist fragment of changes
-                                                                // NOTE: playlist fragment is always initialized since it is the first tab selected
-                                                                // if it is no longer the first tab, it must be checked for initialization
-                        if(historyFragment.isAdapterInitialized()) { // if the history fragment is initiailzed...
-                            historyFragment.notifyDataSetChanged(); // notify the history fragment of changes
-                        }
+                        playlistFragment.updateListView();
+                        historyFragment.updateListView();
                     } else {
                         Log.d("LIST IS EMPTY", "serverMSG"); // else, print that our list is empty to debug log
                     }
@@ -422,34 +397,44 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         // do nothing
     }
 
-    // add song function for our search fragment
-    public void addSong(String songID, String songTitle, String songThumbnail){
+    public void addSong(String songID, String songTitle, Bitmap songThumbnail){
         playlistSongIDs.add(songID);    // add the songID to playlist
         playlistSongTitles.add(songTitle); // add the song title to playlist
         playlistThumbnails.add(songThumbnail); // add the song thumbnail to playlist
-        playlistFragment.notifyDataSetChanged(); // notify playlistFragment of the changes
-        /*if(!player.isPlaying()){ // if there is currently no songs playing...
-            player.loadVideo(songID); // play the video added
+        if(!player.isPlaying()){
+            player.loadVideo(songID);
         }
-        */
+        playlistFragment.updateListView(); // notify playlistFragment of the changes
     }
 
-    public Bitmap getImage(String thumbnailURL) {
-        Bitmap thumbnail = null;          // thumbnail, set to null
-        try {
-            InputStream in = new java.net.URL(thumbnailURL).openStream(); // get an input stream from specified url
-            thumbnail = BitmapFactory.decodeStream(in);   // decode the inputStream as a Bitmap
-        } catch (Exception e) { // printe any errors
-            Log.e("Error", e.getMessage());
-            e.printStackTrace();
+    // add song function for our search fragment
+    private void addSong(String songID, String songTitle, String songThumbnailURL){
+        playlistSongIDs.add(songID);    // add the songID to playlist
+        playlistSongTitles.add(songTitle); // add the song title to playlist
+
+        // AsyncTask to download the thumbnail images
+        class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
+            // downloads any number of URLs in the background
+            protected Bitmap doInBackground(String... urls) {
+                String urlDisplay = urls[0];    // save the first url
+                Bitmap thumbnail = null;          // thumbnail, set to null
+                try {
+                    InputStream in = new java.net.URL(urlDisplay).openStream(); // get an input stream from specified url
+                    thumbnail = BitmapFactory.decodeStream(in);   // decode the inputStream as a Bitmap
+                } catch (Exception e) { // printe any errors
+                    Log.e("Error", e.getMessage());
+                    e.printStackTrace();
+                }
+                return thumbnail;   // return the thumbnail
+            }
+
+            // called after bitmap is loaded and returned from doInBackground()
+            protected void onPostExecute(Bitmap result) {
+                playlistThumbnails.add(result); // add the song thumbnail to playlist
+                playlistFragment.updateListView(); // notify playlistFragment of the changes
+            }
         }
-        return thumbnail;   // return the thumbnail
-    }
-
-    public void addToDownloadedThumbs(String newSong) {
-        Bitmap tempBit = getImage(newSong);
-        playlistDownloadThumbs.add(tempBit);
-
+        new DownloadImageTask().execute(songThumbnailURL);  // download the thumbnail for that song and set as bitmap for the imageview
     }
 
     /**

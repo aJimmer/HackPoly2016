@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -11,10 +13,13 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -54,11 +59,20 @@ public class ClientMainActivity extends AppCompatActivity {
     private WifiP2pManager.Channel channel;
     private WifiP2pReceiver receiver;
     private IntentFilter  intentFilter;
+
+    public static final int GET_PLAYLIST = 1;
+    public static final int ADD_NEW_SONG = 3;
+    public static final int VOTE_SONG = 4;
+    public static final int GET_NOW_PLAYING = 5;
     private static final int SEARCH_CODE = 2;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client_main);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.client_toolbar);
+        setSupportActionBar(toolbar);
+        debugCardView();
         ipStr ="";
         hostAddress = null;
         clientList = (ListView)findViewById(R.id.client_list);
@@ -85,13 +99,11 @@ public class ClientMainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         //testConnection();
-                        testServer();
-                        /*try {
-
+                        try {
                             readBroadcast();
                         } catch (IOException e) {
                             e.printStackTrace();
-                        }*/
+                        }
                     }
                 };
                 Thread newThread = new Thread(task);
@@ -281,6 +293,7 @@ public class ClientMainActivity extends AppCompatActivity {
         channel = manager.initialize(this, getMainLooper(), null);
         receiver = new WifiP2pReceiver(manager, channel, this);
 
+
         intentFilter = new IntentFilter();
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
@@ -306,6 +319,30 @@ public class ClientMainActivity extends AppCompatActivity {
         this.hostAddress = groupOwnerIpAddress;
         Log.d(WifiP2pReceiver.logType, "Server's address: " + hostAddress);
     }
+    public void debugCardView()
+    {
+        //debug cardView
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                final CardView cardView =(CardView)findViewById(R.id.client_card);
+
+                final ImageView cardImage = (ImageView)cardView.findViewById(R.id.cardThumbail);
+                final Bitmap testThumb = getImage("https://i.ytimg.com/vi/S-Xm7s9eGxU/default.jpg");
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        cardImage.setImageBitmap(testThumb);
+
+                    }
+                });
+
+            }
+        };
+        Thread debugThread = new Thread(runnable);
+        debugThread.start();
+    }
+
 
     public void testServer() {
         try {
@@ -319,5 +356,16 @@ public class ClientMainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+    public Bitmap getImage(String thumbnailUrl) {
+        Bitmap thumbail = null;
+        try {
+            InputStream in = new java.net.URL(thumbnailUrl).openStream();
+            thumbail = BitmapFactory.decodeStream(in);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return thumbail;
+    }
+
 
 }

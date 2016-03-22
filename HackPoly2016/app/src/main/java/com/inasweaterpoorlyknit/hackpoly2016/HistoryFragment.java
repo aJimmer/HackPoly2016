@@ -1,10 +1,10 @@
 package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Bitmap;
-import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.content.Context;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,16 +13,15 @@ import android.widget.ListView;
 import java.util.ArrayList;
 
 /**
-*   PlaylistFragment displays a playlist of songTitles and songThumbnails
-*   This is used for the playlistFragment AND historyFragment of the ServerLobby
-**/
+ * Created by Connor on 3/18/2016.
+ */
+public class HistoryFragment extends Fragment {
 
-public class PlaylistFragment extends Fragment {
+    private ListView historyListView; // list view to display the playlist
+    private PlaylistAdapter historyAdapter;
+    private boolean adapterSet = false;
 
-    private ListView playlistListView; // list view to display the playlist
-    private PlaylistAdapter playlistAdapter;
-
-    public PlaylistFragment() {
+    public HistoryFragment() {
         // Required empty public constructor
     }
 
@@ -37,14 +36,18 @@ public class PlaylistFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_playlist, container, false);
 
-        this.playlistListView = (ListView) rootView.findViewById(R.id.playlist_fragment_list_view);  // access the listview from xml
-        this.playlistListView.setAdapter(this.playlistAdapter);
+        historyListView = (ListView) rootView.findViewById(R.id.playlist_fragment_list_view);  // access the listview from xml
+
+        if(adapterSet){
+            historyListView.setAdapter(historyAdapter);
+        }
 
         return rootView;    // Inflate the layout for this fragment
     }
 
     public void setPlaylistAdapter(Activity context, ArrayList<String> songTitles, ArrayList<Bitmap> thumbnails){
-        this.playlistAdapter = new PlaylistAdapter(context, songTitles, thumbnails);
+        this.historyAdapter = new PlaylistAdapter(context, songTitles, thumbnails);
+        adapterSet = true;
     }
 
     @Override
@@ -58,6 +61,6 @@ public class PlaylistFragment extends Fragment {
     }
 
     public void updateListView(){
-        this.playlistAdapter.notifyDataSetChanged();
+        this.historyAdapter.notifyDataSetChanged();
     }
 }
