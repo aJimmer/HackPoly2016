@@ -157,7 +157,10 @@ public class WifiP2pReceiver extends BroadcastReceiver{
                                     else
                                     {
                                         //Run WIFI P2P Client
+
                                         if (mServerIp != null) {
+                                            //Save the host(server) ip address so
+                                            //clients can connect later
                                             clientMainActivity.setHostIpAddress(mServerIp);
                                         }
                                         Log.d(logType, info.groupOwnerAddress.getHostName());
@@ -195,34 +198,13 @@ public class WifiP2pReceiver extends BroadcastReceiver{
             Log.d(logType, "This device addreess: " + thisDevice.deviceAddress);
         }
     }
-    public void createGroup()
-    {
-        //if this activity is a server
-        if(serverLobby != null)
-        {
-            mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
-                @Override
-                public void onSuccess() {
-                    Log.d(logType, "WIFI p2p group created");
 
-                    //Connnect all peers that can be
-                    WifiP2pDevice tempDevice = null;
-                    for(int i = 0; i < mPeerList.size(); i++)
-                    {
-                        tempDevice = mPeerList.get(i);
-                        connect(tempDevice);
-                    }
-                }
-
-                @Override
-                public void onFailure(int reason) {
-                    Log.d(logType, "WIFI p2p group not created");
-
-                }
-            });
-        }
-
-    }
+    /**
+     * Connect to devices found in peerlist, iff the device is not already connected
+     * and only the server can initiate connections
+     *
+     * @param device
+     */
     public void connect(final WifiP2pDevice device)
     {
         final WifiP2pConfig config = new WifiP2pConfig();

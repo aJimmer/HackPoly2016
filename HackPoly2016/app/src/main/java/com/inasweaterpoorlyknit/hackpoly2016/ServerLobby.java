@@ -151,7 +151,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         Runnable serverTCPThread = new Runnable() {
             @Override
             public void run() {
-                runTCPSocket();
+                WIFIP2PServer();
 
             }
         };
@@ -438,7 +438,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     }
 
     /**
-     * Initialize all the compents needed for WIFI P2P communication
+     * Initialize all the components needed for WIFI P2P communication
      */
     public void registerReceiver()
     {
@@ -495,6 +495,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
             while (true) {
                 Socket socket = serverSocket.accept();
                 InputStream in = socket.getInputStream();
+                Log.d(WifiP2pReceiver.logType, socket.getRemoteSocketAddress().toString() + " socket Connnected");
                 InputStreamReader read = new InputStreamReader(in, "UTF-8");
                 BufferedReader br = new BufferedReader(read);
                 //read the data being sent from client.
@@ -506,7 +507,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            //addSong(songId, songTitle, thumbNail);
+                            addSong(songId, songTitle, thumbNail);
                         }
                     });
 
@@ -525,4 +526,24 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
             e.printStackTrace();
         }
     }
+
+    /**
+     * Get the bitmap image from the url passed in
+     *
+     * @param thumbnailURL
+     * @return
+     */
+    public Bitmap getImage(String thumbnailURL) {
+        Bitmap thumbnail = null;
+
+        try {
+            InputStream in = new java.net.URL(thumbnailURL).openStream(); // get an input stream from specified url
+            thumbnail = BitmapFactory.decodeStream(in);   // decode the inputStream as a Bitmap
+        } catch (Exception e) { // printe any errors
+            Log.e("Error", e.getMessage());
+            e.printStackTrace();
+        }
+        return thumbnail;
+    }
+
 }

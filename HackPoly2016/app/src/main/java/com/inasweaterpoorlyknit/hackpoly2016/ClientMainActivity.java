@@ -156,10 +156,17 @@ public class ClientMainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * sends a new song to server
+     *
+     * @param songId
+     * @param songName
+     * @param songThumbNail
+     */
     public void sendMessage(String songId, String songName, String songThumbNail) {
         Socket socket = null;
         try {
-            socket = new Socket(ipStr, 9000);
+            socket = new Socket(hostAddress, WifiP2pReceiver.PORT);
             //Send song id and song name to sever
             OutputStream os = socket.getOutputStream();
             PrintStream out = new PrintStream(os);
@@ -287,6 +294,10 @@ public class ClientMainActivity extends AppCompatActivity {
 
         return ipValues[3] + "." + ipValues[2] + "." + ipValues[1] + "." + ipValues[0];
     }
+
+    /**
+     * Initialize all the components needed for wifi p2p
+     */
     public void registerReceiver()
     {
         manager = (WifiP2pManager)getSystemService(Context.WIFI_P2P_SERVICE);
@@ -315,6 +326,11 @@ public class ClientMainActivity extends AppCompatActivity {
         });
 
     }
+
+    /**
+     * Gets the ip address from wifi p2p connection establishment
+     * @param groupOwnerIpAddress
+     */
     public void setHostIpAddress(String groupOwnerIpAddress) {
         this.hostAddress = groupOwnerIpAddress;
         Log.d(WifiP2pReceiver.logType, "Server's address: " + hostAddress);
@@ -341,20 +357,6 @@ public class ClientMainActivity extends AppCompatActivity {
         };
         Thread debugThread = new Thread(runnable);
         debugThread.start();
-    }
-
-
-    public void testServer() {
-        try {
-            Socket socket = new Socket(hostAddress, 9812);
-            OutputStream out = socket.getOutputStream();
-            PrintStream printStream = new PrintStream(out);
-            printStream.println("IT works");
-            socket.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
     public Bitmap getImage(String thumbnailUrl) {
         Bitmap thumbail = null;
