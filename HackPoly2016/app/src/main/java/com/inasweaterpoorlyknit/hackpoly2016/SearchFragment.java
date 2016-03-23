@@ -42,7 +42,7 @@ public class SearchFragment extends Fragment {
 
     public ArrayList<String> searchTitles;
     public ArrayList<Bitmap> searchThumbnails;
-
+    public ArrayList<String> searchThumbnailURLs;
     private long numSearchResults;
 
     private PlaylistAdapter resultsAdapter;
@@ -70,6 +70,7 @@ public class SearchFragment extends Fragment {
         selectedVideoIndex = -1;
         searchTitles = new ArrayList<>();
         searchThumbnails = new ArrayList<>();
+        searchThumbnailURLs = new ArrayList<>();
 
         searchEditText = (EditText) rootView.findViewById(R.id.search_fragment_edit_text);
 
@@ -123,7 +124,9 @@ public class SearchFragment extends Fragment {
                             // for each searchResult, set it in the result Titles
                             for (SearchResult searchResult : searchResults) {
                                 searchTitles.add(searchResult.getSnippet().getTitle());
-                                new DownloadThumbnailTask().execute(searchResult.getSnippet().getThumbnails().getDefault().getUrl());
+                                String thumbnailURL = searchResult.getSnippet().getThumbnails().getDefault().getUrl();
+                                searchThumbnailURLs.add(thumbnailURL);
+                                new DownloadThumbnailTask().execute(thumbnailURL);
                             }
                         }
                     } catch (InterruptedException e) {
@@ -153,7 +156,7 @@ public class SearchFragment extends Fragment {
                     // if user selected any video add to playlist
                     ((ServerLobby) getActivity()).addSong(searchResults.get(selectedVideoIndex).getId().getVideoId(),
                             searchTitles.get(selectedVideoIndex),
-                            searchThumbnails.get(selectedVideoIndex));
+                            searchThumbnails.get(selectedVideoIndex), searchThumbnailURLs.get(selectedVideoIndex));
                     Toast.makeText(view.getContext(), "Song added to current playlist.", Toast.LENGTH_SHORT).show();
                 } else {
                     // inform user they must search for a video first

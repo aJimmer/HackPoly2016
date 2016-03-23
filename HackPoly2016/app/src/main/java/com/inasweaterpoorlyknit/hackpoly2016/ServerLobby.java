@@ -19,12 +19,14 @@ import android.util.Log;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerFragment;
+import com.google.api.client.util.ClassInfo;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.math.BigInteger;
@@ -42,6 +44,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
     private ArrayList<String> playlistSongIDs;      // current playlist's song IDs
     private ArrayList<String> playlistSongTitles;   // current playlist's song titles
+    private ArrayList<String> thumbnailURLS;        //Save the thumbnail strings so can send back to client
     private ArrayList<Bitmap> playlistThumbnails;   // current playlist's song thumbnails
 
     private ArrayList<String> historySongTitles;    // previous playlist song titles
@@ -63,6 +66,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
     private String androidKey;                      // android developer key
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,6 +76,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         playlistSongIDs = new ArrayList<>();
         playlistSongTitles = new ArrayList<>();
         playlistThumbnails = new ArrayList<>();
+        thumbnailURLS = new ArrayList<>();
         historySongTitles = new ArrayList<>();
         historyThumbnails = new ArrayList<>();
 
@@ -134,31 +139,16 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
             Log.d("androidKey: ", "failed to initialize");
         }
         registerReceiver();
-        //Run UDP server socket on new thread[since there should be no networking on main thread]
-        Runnable serverUDPThread = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    udpServer();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
 
-        };
-        
-        //Run TCP server socket on new thread.
-        Runnable serverTCPThread = new Runnable() {
+        //Run Wifip2p server socket on new thread.
+        Runnable serverP2PThread = new Runnable() {
             @Override
             public void run() {
                 WIFIP2PServer();
-
             }
         };
 
-        Thread tcpThread = new Thread(serverTCPThread);
-        Thread thread = new Thread(serverUDPThread);
-        thread.start();
+        Thread tcpThread = new Thread(serverP2PThread);
         tcpThread.start();
         //Discover every 3 seconds
         Runnable discoverTask = new Runnable() {
@@ -370,6 +360,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                         playlistSongIDs.remove(0);  // remove the top song id
                         historySongTitles.add(0, playlistSongTitles.remove(0)); // remove the top song title and place it in front of historySongTitles
                         historyThumbnails.add(0, playlistThumbnails.remove(0)); // remove the top song thumbnail and place it in front of historyThumbnails
+                        thumbnailURLS.remove(0);
                         if(!playlistSongIDs.isEmpty()){ // if there are more videos to load
                             player.loadVideo(playlistSongIDs.get(0)); // load the first video on the list
                         }
@@ -397,10 +388,12 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         // do nothing
     }
 
-    public void addSong(String songID, String songTitle, Bitmap songThumbnail){
+    public void addSong(String songID, String songTitle,Bitmap songThumbnail, String thumbnailStr){
         playlistSongIDs.add(songID);    // add the songID to playlist
         playlistSongTitles.add(songTitle); // add the song title to playlist
         playlistThumbnails.add(songThumbnail); // add the song thumbnail to playlist
+        thumbnailURLS.add(thumbnailStr);        //add the url of thumbnail for now playing on client
+
         if(!player.isPlaying()){
             player.loadVideo(songID);
         }
@@ -411,6 +404,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     private void addSong(String songID, String songTitle, String songThumbnailURL){
         playlistSongIDs.add(songID);    // add the songID to playlist
         playlistSongTitles.add(songTitle); // add the song title to playlist
+        thumbnailURLS.add(songThumbnailURL);
 
         // AsyncTask to download the thumbnail images
         class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
@@ -436,6 +430,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         }
         new DownloadImageTask().execute(songThumbnailURL);  // download the thumbnail for that song and set as bitmap for the imageview
     }
+
 
     /**
      * Initialize all the components needed for WIFI P2P communication
@@ -494,31 +489,73 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
             while (true) {
                 Socket socket = serverSocket.accept();
-                InputStream in = socket.getInputStream();
                 Log.d(WifiP2pReceiver.logType, socket.getRemoteSocketAddress().toString() + " socket Connnected");
-                InputStreamReader read = new InputStreamReader(in, "UTF-8");
-                BufferedReader br = new BufferedReader(read);
-                //read the data being sent from client.
-                final String songId = br.readLine();
-                final String songTitle = br.readLine();
-                final String songThumbnail = br.readLine();
-                final Bitmap thumbNail = getImage(songThumbnail);
-                if (player != null) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            addSong(songId, songTitle, thumbNail);
-                        }
-                    });
+                InputStream in = socket.getInputStream();
+                int messageType = in.read();
+
+                if(messageType == ClientMainActivity.ADD_NEW_SONG)
+                {
+                    //Add new song to playlist
+                    InputStreamReader read = new InputStreamReader(in, "UTF-8");
+                    BufferedReader br = new BufferedReader(read);
+                    //read the data being sent from client.
+                    final String songId = br.readLine();
+                    final String songTitle = br.readLine();
+                    final String songThumbnail = br.readLine();
+                    final Bitmap thumbnail = getImage(songThumbnail);
+                    playlistSongIDs.add(songId);    // add the songID to playlist
+                    playlistSongTitles.add(songTitle); // add the song title to playlist
+                    playlistThumbnails.add(thumbnail); // add the song thumbnail to playlist
+                    thumbnailURLS.add(songThumbnail);
+
+                    if (player != null) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                //addSong(songId, songTitle, thumbNail);
+                                playlistFragment.updateListView();
+                            }
+                        });
+
+                    }
+                    //Send playlist back to client
+                    OutputStream out = socket.getOutputStream();
+                    PrintStream outValue = new PrintStream(out);
+                    outValue.println(playlistSongTitles.size()); // send size of songname Array
+                    for (int i = 0; i < playlistSongTitles.size(); i++) {
+                        outValue.println(playlistSongTitles.get(i));
+                    }
 
                 }
-                //Send playlist back to client
-                OutputStream out = socket.getOutputStream();
-                PrintStream outValue = new PrintStream(out);
-                outValue.println(playlistSongTitles.size()); // send size of songname Array
-                for (int i = 0; i < playlistSongTitles.size(); i++) {
-                    outValue.println(playlistSongTitles.get(i));
+                else if(messageType == ClientMainActivity.GET_PLAYLIST)
+                {
+                    //Send playlist back to client
+                    OutputStream out = socket.getOutputStream();
+                    PrintStream outValue = new PrintStream(out);
+                    outValue.println(playlistSongTitles.size()); // send size of songname Array
+                    for (int i = 0; i < playlistSongTitles.size(); i++) {
+                        outValue.println(playlistSongTitles.get(i));
+                    }
+
                 }
+                else if(messageType == ClientMainActivity.GET_NOW_PLAYING)
+                {
+                    //Return data about song playing now
+                    String nowPlayingThumbnail = thumbnailURLS.get(0);
+                    String nowPlayingTitle = playlistSongTitles.get(0);
+
+                    OutputStream out = socket.getOutputStream();
+                    PrintStream printStream = new PrintStream(out);
+                    printStream.println(nowPlayingThumbnail);
+                    printStream.println(nowPlayingTitle);
+
+                }
+                else if(messageType == ClientMainActivity.VOTE_SONG)
+                {
+                    //A client voted for song, do algorithm to process this
+                }
+                socket.close();
+
             }
 
 

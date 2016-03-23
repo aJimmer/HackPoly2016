@@ -28,6 +28,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.math.BigInteger;
@@ -45,6 +47,9 @@ public class ClientMainActivity extends AppCompatActivity {
     public String songRequest;
     Button sendRequest;
     Button connectToHost;
+    private CardView nowPlayingCard;
+    private ImageView nowPlayingThumnail;
+    private TextView nowPlayingText;
     private ListView clientList;
     private ArrayList<String> songList;
     private ArrayAdapter<String> listAdapter;
@@ -119,6 +124,10 @@ public class ClientMainActivity extends AppCompatActivity {
             }
         });
         registerReceiver();
+        nowPlayingCard = (CardView)findViewById(R.id.client_card);
+        nowPlayingThumnail = (ImageView)nowPlayingCard.findViewById(R.id.cardThumbail);
+        nowPlayingText = (TextView)nowPlayingCard.findViewById(R.id.now_playing_song_title);
+
     }
     @Override
     protected void onResume()
@@ -163,16 +172,18 @@ public class ClientMainActivity extends AppCompatActivity {
      * @param songName
      * @param songThumbNail
      */
-    public void sendMessage(String songId, String songName, String songThumbNail) {
+    public void addSong(String songId, String songName, String songThumbNail) {
         Socket socket = null;
         try {
             socket = new Socket(hostAddress, WifiP2pReceiver.PORT);
             //Send song id and song name to sever
             OutputStream os = socket.getOutputStream();
+            os.write(ClientMainActivity.ADD_NEW_SONG);
             PrintStream out = new PrintStream(os);
             out.println(songId);
             out.println(songName);
             out.println(songThumbNail);
+
             //Recieve Playlist from server
             InputStream in = socket.getInputStream();
             InputStreamReader read = new InputStreamReader(in, "UTF-8");
@@ -195,8 +206,47 @@ public class ClientMainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+    public void getNowPlaying()
+    {
+        Socket socket = null;
+        try {
+            socket = new Socket(hostAddress, WifiP2pReceiver.PORT);
+            //Notify server client wants the song now playing
+            OutputStream os = socket.getOutputStream();
+            os.write(ClientMainActivity.GET_NOW_PLAYING);
 
+            InputStream in = socket.getInputStream();
+            InputStreamReader ins = new InputStreamReader(in, "UTF-8");
+            BufferedReader br = new BufferedReader(ins);
 
+            //Get the bitmap and song title
+            final String thumbnailURL = br.readLine();
+            final String nowPlayingSongTitle = br.readLine();
+            final Bitmap nowPlayingThumb = getImage(thumbnailURL);
+            socket.close();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    updateNowPlaying(nowPlayingThumb, nowPlayingSongTitle);
+                }
+            });
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Sets the thumbnail and song title for now playing card
+     * @param thumbnail
+     * @param songTitle
+     */
+    public void updateNowPlaying(Bitmap thumbnail, String songTitle)
+    {
+        nowPlayingThumnail.setImageBitmap(thumbnail);
+        nowPlayingText.setText(songTitle);
+
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -211,7 +261,8 @@ public class ClientMainActivity extends AppCompatActivity {
                     Runnable task = new Runnable() {
                         @Override
                         public void run() {
-                            sendMessage(returnedVideoID, returnedVideoTitle, returnVideoThumbnail);
+                            addSong(returnedVideoID, returnedVideoTitle, returnVideoThumbnail);
+                            getNowPlaying();
                         }
                     };
                     Thread newThread = new Thread(task);
