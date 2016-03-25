@@ -63,7 +63,8 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     private IntentFilter intentFilter;              //Intent filter that listens for WIFI p2p events
 
     private String androidKey;                      // android developer key
-
+    private Thread p2pThread;                       //thread that the wifi p2p runs on
+    private ServerSocket serverSocket;              //Server socket that listens for clients
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,8 +147,8 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
             }
         };
 
-        Thread tcpThread = new Thread(serverP2PThread);
-        tcpThread.start();
+        p2pThread = new Thread(serverP2PThread);
+        p2pThread.start();
         //Discover every 3 seconds
         Runnable discoverTask = new Runnable() {
             @Override
@@ -176,6 +177,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         };
         Thread discoverThread = new Thread(discoverTask);
         discoverThread.start();
+
     }
 
     //   setupViewPager is a layout manager that allows us to flip left and right through fragments
@@ -192,32 +194,30 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     {
         super.onResume();
         registerReceiver(receiver, intentFilter);
-        playlistFragment.setPlaylistAdapter(this, playlistSongTitles, playlistThumbnails);
-        playlistFragment.updateListView();
     }
     @Override
     protected void onDestroy()
     {
         super.onDestroy();
-
         unregisterReceiver(receiver);
+
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         manager.removeGroup(channel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
                 Log.d(WifiP2pReceiver.logType, "Party Disconnected");
                 receiver.setAllConnections(false);
             }
-
             @Override
             public void onFailure(int reason) {
                 Log.d(WifiP2pReceiver.logType, "Party still running");
-
             }
         });
     }
-
-
-
     /**
      * Runs UDP Server socket that listens for new clients trying to connect
      * to party
@@ -355,7 +355,6 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                 public void onVideoStarted() {
 
                 }
-
                 @Override
                 public void onVideoEnded() {    // when video ends...
                     if (playlistSongIDs.size() > 0) {   // if there are still songs to remove
@@ -371,16 +370,11 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                     } else {
                         Log.d("LIST IS EMPTY", "serverMSG"); // else, print that our list is empty to debug log
                     }
-
                 }
-
                 @Override
                 public void onError(YouTubePlayer.ErrorReason errorReason) {
-
                 }
             });
-
-
         }
     }
     @Override
@@ -487,14 +481,14 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
      */
     public void WIFIP2PServer() {
         try {
-            ServerSocket serverSocket = new ServerSocket(WifiP2pReceiver.PORT);
+            serverSocket = new ServerSocket(WifiP2pReceiver.PORT);
 
             while (true) {
                 Socket socket = serverSocket.accept();
                 Log.d(WifiP2pReceiver.logType, socket.getRemoteSocketAddress().toString() + " socket Connnected");
                 InputStream in = socket.getInputStream();
-                int messageType = in.read();
 
+                int messageType = in.read();
                 if(messageType == ClientMainActivity.ADD_NEW_SONG)
                 {
                     //Add new song to playlist
@@ -558,7 +552,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                 socket.close();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.d(WifiP2pReceiver.logType, "Server closed");
         }
     }
     /**
