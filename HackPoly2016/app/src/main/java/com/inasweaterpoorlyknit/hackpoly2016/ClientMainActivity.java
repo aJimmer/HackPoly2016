@@ -28,8 +28,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.math.BigInteger;
@@ -92,23 +90,26 @@ public class ClientMainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
         connectToHost = (Button)findViewById(R.id.connectToHost);
 
         connectToHost.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-
                 Runnable task = new Runnable() {
                     @Override
                     public void run() {
-                        //testConnection();
-                        try {
-                            readBroadcast();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
+                            @Override
+                            public void onSuccess() {
+                                Log.d(WifiP2pReceiver.logType, "Discovery succeeded");
+                            }
+
+                            @Override
+                            public void onFailure(int reason) {
+
+                            }
+                        });
                     }
                 };
                 Thread newThread = new Thread(task);
@@ -410,15 +411,13 @@ public class ClientMainActivity extends AppCompatActivity {
         debugThread.start();
     }
     public Bitmap getImage(String thumbnailUrl) {
-        Bitmap thumbail = null;
+        Bitmap thumbnail = null;
         try {
             InputStream in = new java.net.URL(thumbnailUrl).openStream();
-            thumbail = BitmapFactory.decodeStream(in);
+            thumbnail = BitmapFactory.decodeStream(in);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return thumbail;
+        return thumbnail;
     }
-
-
 }

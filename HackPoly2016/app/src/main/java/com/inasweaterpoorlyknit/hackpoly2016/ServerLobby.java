@@ -19,14 +19,12 @@ import android.util.Log;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerFragment;
-import com.google.api.client.util.ClassInfo;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.math.BigInteger;
@@ -194,16 +192,20 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     {
         super.onResume();
         registerReceiver(receiver, intentFilter);
+        playlistFragment.setPlaylistAdapter(this, playlistSongTitles, playlistThumbnails);
+        playlistFragment.updateListView();
     }
     @Override
     protected void onDestroy()
     {
         super.onDestroy();
+
         unregisterReceiver(receiver);
         manager.removeGroup(channel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
                 Log.d(WifiP2pReceiver.logType, "Party Disconnected");
+                receiver.setAllConnections(false);
             }
 
             @Override
@@ -381,8 +383,6 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
         }
     }
-
-
     @Override
     public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
         // do nothing
@@ -556,15 +556,11 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                     //A client voted for song, do algorithm to process this
                 }
                 socket.close();
-
             }
-
-
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
     /**
      * Get the bitmap image from the url passed in
      *
@@ -583,5 +579,4 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         }
         return thumbnail;
     }
-
 }

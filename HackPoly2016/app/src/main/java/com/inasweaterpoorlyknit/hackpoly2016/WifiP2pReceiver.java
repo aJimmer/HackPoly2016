@@ -70,8 +70,6 @@ public class WifiP2pReceiver extends BroadcastReceiver{
                         entry.setValue(false);
                     }
                 }
-
-
             }
         };
         if(activity instanceof ServerLobby) {
@@ -151,13 +149,10 @@ public class WifiP2pReceiver extends BroadcastReceiver{
                                     {
                                         //Run WIFI P2p Server
                                         //Log.d(logType, info.groupOwnerAddress.getHostName());
-
-
                                     }
                                     else
                                     {
                                         //Run WIFI P2P Client
-
                                         if (mServerIp != null) {
                                             //Save the host(server) ip address so
                                             //clients can connect later
@@ -187,13 +182,16 @@ public class WifiP2pReceiver extends BroadcastReceiver{
             //Respond to this device's wifi state changing
             WifiP2pDevice thisDevice = intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
             mThisDevice = thisDevice;
-            if(serverLobby != null)
-            {
-                WifiP2pConfig config = new WifiP2pConfig();
-                config.deviceAddress = thisDevice.deviceAddress;
-                config.groupOwnerIntent = 15;
 
-            }
+            mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener() {
+                @Override
+                public void onConnectionInfoAvailable(WifiP2pInfo info) {
+                    if (!info.groupFormed) {
+                        Log.d(WifiP2pReceiver.logType, "No connection set server address to null");
+                        mServerIp = null;
+                    }
+                }
+            });
             Log.d(logType, "This device name: " + thisDevice.deviceName);
             Log.d(logType, "This device addreess: " + thisDevice.deviceAddress);
         }
@@ -226,6 +224,11 @@ public class WifiP2pReceiver extends BroadcastReceiver{
 
             }
         });
+    }
 
+    public void setAllConnections(boolean value) {
+        for (Map.Entry<String, Boolean> entry : isConnected.entrySet()) {
+            entry.setValue(value);
+        }
     }
 }
