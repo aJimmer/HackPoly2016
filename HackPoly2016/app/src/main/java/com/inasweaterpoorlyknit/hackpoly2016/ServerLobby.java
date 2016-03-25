@@ -394,7 +394,9 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         playlistThumbnails.add(songThumbnail); // add the song thumbnail to playlist
         thumbnailURLS.add(thumbnailStr);        //add the url of thumbnail for now playing on client
 
-        if(!player.isPlaying()){
+        //If the player is not playing and the playlist is less than 1
+        //play the song just added to list
+        if (!player.isPlaying() && playlistSongIDs.size() <= 1) {
             player.loadVideo(songID);
         }
         playlistFragment.updateListView(); // notify playlistFragment of the changes
@@ -543,7 +545,6 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                     //Return data about song playing now
                     String nowPlayingThumbnail = thumbnailURLS.get(0);
                     String nowPlayingTitle = playlistSongTitles.get(0);
-
                     OutputStream out = socket.getOutputStream();
                     PrintStream printStream = new PrintStream(out);
                     printStream.println(nowPlayingThumbnail);
