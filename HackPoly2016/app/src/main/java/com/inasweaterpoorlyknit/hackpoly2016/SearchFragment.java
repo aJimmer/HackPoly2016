@@ -40,9 +40,10 @@ public class SearchFragment extends Fragment {
     private final Object lock = new Object(); // a lock object used for synchronization with task
     public List<SearchResult> searchResults; // list to hold the search results from youtube's search api
 
-    public ArrayList<String> searchTitles;
-    public ArrayList<Bitmap> searchThumbnails;
-    public ArrayList<String> searchThumbnailURLs;
+    public ArrayList<SongData> songList;
+    //public ArrayList<String> searchTitles;
+    //public ArrayList<Bitmap> searchThumbnails;
+    //public ArrayList<String> searchThumbnailURLs;
     private long numSearchResults;
 
     private PlaylistAdapter resultsAdapter;
@@ -68,9 +69,10 @@ public class SearchFragment extends Fragment {
         numSearchResults = Search.NUMBER_OF_VIDEOS_TO_RETURN;
 
         selectedVideoIndex = -1;
-        searchTitles = new ArrayList<>();
-        searchThumbnails = new ArrayList<>();
-        searchThumbnailURLs = new ArrayList<>();
+        songList = new ArrayList<>();
+        //searchTitles = new ArrayList<>();
+        //searchThumbnails = new ArrayList<>();
+        //searchThumbnailURLs = new ArrayList<>();
 
         searchEditText = (EditText) rootView.findViewById(R.id.search_fragment_edit_text);
 
@@ -119,14 +121,18 @@ public class SearchFragment extends Fragment {
                         lock.wait();
 
                         if(searchResults != null) { // if there are results to return
-                            searchTitles.clear();  // first clear the result Titles
-                            searchThumbnails.clear(); // and the result Thumbnails
+                            songList.clear();
+
+                            SongData song = new SongData();
+                            //searchTitles.clear();  // first clear the result Titles
+                            //searchThumbnails.clear(); // and the result Thumbnails
                             // for each searchResult, set it in the result Titles
                             for (SearchResult searchResult : searchResults) {
-                                searchTitles.add(searchResult.getSnippet().getTitle());
-                                String thumbnailURL = searchResult.getSnippet().getThumbnails().getDefault().getUrl();
-                                searchThumbnailURLs.add(thumbnailURL);
-                                new DownloadThumbnailTask().execute(thumbnailURL);
+                                song.songTitle = searchResult.getSnippet().getTitle();
+                               // searchTitles.add(searchResult.getSnippet().getTitle());
+                                song.songThumbnailURL = searchResult.getSnippet().getThumbnails().getDefault().getUrl();
+
+                                new DownloadThumbnailTask().execute(song.songThumbnailURL);
                             }
                         }
                     } catch (InterruptedException e) {
@@ -138,7 +144,7 @@ public class SearchFragment extends Fragment {
 
         // if an item in the list is clicked, save it's current index in the list view
         searchListView = (ListView) rootView.findViewById(R.id.search_fragment_list_view);
-        resultsAdapter = new PlaylistAdapter(getActivity(), searchTitles, searchThumbnails);
+        resultsAdapter = new PlaylistAdapter(getActivity(), songList);
         searchListView.setAdapter(resultsAdapter);
         searchListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -155,8 +161,8 @@ public class SearchFragment extends Fragment {
                 if (selectedVideoIndex >= 0) {
                     // if user selected any video add to playlist
                     ((ServerLobby) getActivity()).addSong(searchResults.get(selectedVideoIndex).getId().getVideoId(),
-                            searchTitles.get(selectedVideoIndex),
-                            searchThumbnails.get(selectedVideoIndex), searchThumbnailURLs.get(selectedVideoIndex));
+                            songList.get(selectedVideoIndex).songTitle,
+                            songList.get(selectedVideoIndex).songThumbnail, songList.get(selectedVideoIndex).songThumbnailURL);
                     Toast.makeText(view.getContext(), "Song added to current playlist.", Toast.LENGTH_SHORT).show();
                 } else {
                     // inform user they must search for a video first
@@ -225,7 +231,7 @@ public class SearchFragment extends Fragment {
 
         // called after bitmap is loaded and returned from doInBackground()
         protected void onPostExecute(Bitmap result) {
-            searchThumbnails.add(result); // add the song thumbnail to playlist
+            //searchThumbnails.add(result); // add the song thumbnail to playlist
             resultsAdapter.notifyDataSetChanged();
         }
     }

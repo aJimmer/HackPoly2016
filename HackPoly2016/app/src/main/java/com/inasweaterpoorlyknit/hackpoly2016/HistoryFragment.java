@@ -45,8 +45,8 @@ public class HistoryFragment extends Fragment {
         return rootView;    // Inflate the layout for this fragment
     }
 
-    public void setPlaylistAdapter(Activity context, ArrayList<String> songTitles, ArrayList<Bitmap> thumbnails){
-        this.historyAdapter = new PlaylistAdapter(context, songTitles, thumbnails);
+    public void setPlaylistAdapter(Activity context, ArrayList<SongData> songList_History){
+        this.historyAdapter = new PlaylistAdapter(context, songList_History);
         adapterSet = true;
     }
 

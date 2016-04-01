@@ -5,12 +5,17 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.util.SortedListAdapterCallback;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
-
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
 *   PlaylistFragment displays a playlist of songTitles and songThumbnails
@@ -25,6 +30,7 @@ public class PlaylistFragment extends Fragment {
     public PlaylistFragment() {
         // Required empty public constructor
     }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -43,8 +49,11 @@ public class PlaylistFragment extends Fragment {
         return rootView;    // Inflate the layout for this fragment
     }
 
-    public void setPlaylistAdapter(Activity context, ArrayList<String> songTitles, ArrayList<Bitmap> thumbnails){
-        this.playlistAdapter = new PlaylistAdapter(context, songTitles, thumbnails);
+    /*public void setPlaylistAdapter(Activity context,  ArrayList<String> songTitles, ArrayList<Bitmap> thumbnails){
+        this.playlistAdapter = new PlaylistAdapter(context,  songTitles, thumbnails);
+    }*/
+    public void setPlaylistAdapter(Activity context,  ArrayList<SongData> songList){
+        this.playlistAdapter = new PlaylistAdapter(context,  songList);
     }
 
     @Override

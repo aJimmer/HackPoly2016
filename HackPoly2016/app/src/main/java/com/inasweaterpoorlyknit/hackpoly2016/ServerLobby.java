@@ -1,5 +1,4 @@
 package com.inasweaterpoorlyknit.hackpoly2016;
-
 import android.content.Context;
 import android.content.IntentFilter;
 import android.content.res.AssetManager;
@@ -40,19 +39,21 @@ import java.util.Properties;
 
 public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnInitializedListener{
 
-    private ArrayList<String> playlistSongIDs;      // current playlist's song IDs
-    private ArrayList<String> playlistSongTitles;   // current playlist's song titles
-    private ArrayList<String> thumbnailURLS;        //Save the thumbnail strings so can send back to client
-    private ArrayList<Bitmap> playlistThumbnails;   // current playlist's song thumbnails
+    private ArrayList<SongData> songList;
+    private ArrayList<SongData> songList_History;
+    //private ArrayList<String> playlistSongIDs;      // current playlist's song IDs
+    //private ArrayList<String> playlistSongTitles;   // current playlist's song titles
+    //private ArrayList<String> thumbnailURLS;        //Save the thumbnail strings so can send back to client
+    //private ArrayList<Bitmap> playlistThumbnails;   // current playlist's song thumbnails
 
-    private ArrayList<String> historySongTitles;    // previous playlist song titles
-    private ArrayList<Bitmap> historyThumbnails;    // previous playlist song thumbnails
+    //private ArrayList<String> historySongTitles;    // previous playlist song titles
+    //private ArrayList<Bitmap> historyThumbnails;    // previous playlist song thumbnails
 
     private YouTubePlayer player;                   // the YouTube player fragment
 
     private ViewPager viewPager;    // view pager will link our three fragments
     private TabLayout tabLayout;    // the tabs that initiate the change between fragments
-    
+
     private HistoryFragment historyFragment;       // fragment to display playlist history
     private PlaylistFragment playlistFragment;      // fragment to display the current playlist
     private SearchFragment searchFragment;          // fragment to allow searching and adding new songs
@@ -72,12 +73,14 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         setContentView(R.layout.activity_server_lobby);
 
         // initialize our arrays to hold the song ids, titles, and thumbnails
-        playlistSongIDs = new ArrayList<>();
-        playlistSongTitles = new ArrayList<>();
-        playlistThumbnails = new ArrayList<>();
-        thumbnailURLS = new ArrayList<>();
-        historySongTitles = new ArrayList<>();
-        historyThumbnails = new ArrayList<>();
+        songList = new ArrayList<>();
+        songList_History = new ArrayList<>();
+        //playlistSongIDs = new ArrayList<>();
+        //playlistSongTitles = new ArrayList<>();
+        //playlistThumbnails = new ArrayList<>();
+        //thumbnailURLS = new ArrayList<>();
+        //historySongTitles = new ArrayList<>();
+        //historyThumbnails = new ArrayList<>();
 
         // four hardcoded songs to assist with debugging
         this.addSong("S-Xm7s9eGxU", "Erik Satie - Gymnopédie No.1", "https://i.ytimg.com/vi/S-Xm7s9eGxU/default.jpg");
@@ -87,7 +90,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
         // initialize playlist fragment with current tracks
         playlistFragment = new PlaylistFragment();  // intialize playlist fragment
-        playlistFragment.setPlaylistAdapter(this, playlistSongTitles, playlistThumbnails);
+        playlistFragment.setPlaylistAdapter(this, songList);
 
 
         // initialize search fragment
@@ -95,8 +98,8 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
         // initialize history fragment
         historyFragment = new HistoryFragment();  // intialize history fragment
-        historyFragment.setPlaylistAdapter(this, historySongTitles, historyThumbnails);
-
+        //historyFragment.setPlaylistAdapter(this, historySongTitles, historyThumbnails);
+        historyFragment.setPlaylistAdapter(this, songList_History);
         // initialize the viewPager to link to the three fragments(Playlist, Search, History)
         viewPager = (ViewPager) findViewById(R.id.viewpager);
         setupViewPager(viewPager);
@@ -212,6 +215,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                 Log.d(WifiP2pReceiver.logType, "Party Disconnected");
                 receiver.setAllConnections(false);
             }
+
             @Override
             public void onFailure(int reason) {
                 Log.d(WifiP2pReceiver.logType, "Party still running");
@@ -318,10 +322,13 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                 //Send playlist back to client
                 OutputStream out = socket.getOutputStream();
                 PrintStream outValue = new PrintStream(out);
-                outValue.println(playlistSongTitles.size()); // send size of songname Array
-                for(int i = 0; i < playlistSongTitles.size(); i++)
+                outValue.println(songList.size());
+                //outValue.println(playlistSongTitles.size()); // send size of songname Array
+                for(int i = 0; i < songList.size(); i++)
+                //for(int i = 0; i < playlistSongTitles.size(); i++)
                 {
-                    outValue.println(playlistSongTitles.get(i));
+                    //outValue.println(playlistSongTitles.get(i));
+                    outValue.println(songList.get(i));
                 }
             }
         } catch (IOException e) {
@@ -332,7 +339,8 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     @Override
     public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean wasRestored) {
         if (!wasRestored) {   // if the player is new and not just restored
-            youTubePlayer.loadVideo(playlistSongIDs.get(0)); // the first song on our debug list of songs
+            youTubePlayer.loadVideo(songList.get(0).songID);
+            //youTubePlayer.loadVideo(playlistSongIDs.get(0)); // the first song on our debug list of songs
             this.player = youTubePlayer;
             player.setShowFullscreenButton(false);  // prev & next buttons currently disabled from our player
             player.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
@@ -357,13 +365,14 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                 }
                 @Override
                 public void onVideoEnded() {    // when video ends...
-                    if (playlistSongIDs.size() > 0) {   // if there are still songs to remove
-                        playlistSongIDs.remove(0);  // remove the top song id
-                        historySongTitles.add(0, playlistSongTitles.remove(0)); // remove the top song title and place it in front of historySongTitles
-                        historyThumbnails.add(0, playlistThumbnails.remove(0)); // remove the top song thumbnail and place it in front of historyThumbnails
-                        thumbnailURLS.remove(0);
-                        if(!playlistSongIDs.isEmpty()){ // if there are more videos to load
-                            player.loadVideo(playlistSongIDs.get(0)); // load the first video on the list
+                    if (songList.size() > 0) {   // if there are still songs to remove
+                        songList.remove(0);  // remove the top song id
+                        songList_History.add(0, songList.remove(0));
+                        //historySongTitles.add(0, playlistSongTitles.remove(0)); // remove the top song title and place it in front of historySongTitles
+                        //historyThumbnails.add(0, playlistThumbnails.remove(0)); // remove the top song thumbnail and place it in front of historyThumbnails
+                        //thumbnailURLS.remove(0);
+                        if(!songList.isEmpty()){ // if there are more videos to load
+                            player.loadVideo(songList.get(0).songID); // load the first video on the list
                         }
                         playlistFragment.updateListView();
                         historyFragment.updateListView();
@@ -383,14 +392,21 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     }
 
     public void addSong(String songID, String songTitle,Bitmap songThumbnail, String thumbnailStr){
-        playlistSongIDs.add(songID);    // add the songID to playlist
-        playlistSongTitles.add(songTitle); // add the song title to playlist
-        playlistThumbnails.add(songThumbnail); // add the song thumbnail to playlist
-        thumbnailURLS.add(thumbnailStr);        //add the url of thumbnail for now playing on client
 
+        SongData song = new SongData();
+        song.songID = songID;
+        song.songTitle = songTitle;
+        song.songThumbnail = songThumbnail;
+        song.songThumbnailURL = thumbnailStr;
+        //playlistSongIDs.add(songID);    // add the songID to playlist
+        //playlistSongTitles.add(songTitle); // add the song title to playlist
+        //playlistThumbnails.add(songThumbnail); // add the song thumbnail to playlist
+        //thumbnailURLS.add(thumbnailStr);        //add the url of thumbnail for now playing on client
+        songList.add(song);
         //If the player is not playing and the playlist is less than 1
         //play the song just added to list
-        if (!player.isPlaying() && playlistSongIDs.size() <= 1) {
+        //if (!player.isPlaying() && playlistSongIDs.size() <= 1) {
+        if (!player.isPlaying() && songList.size() <= 1) {
             player.loadVideo(songID);
         }
         playlistFragment.updateListView(); // notify playlistFragment of the changes
@@ -398,9 +414,16 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
     // add song function for our search fragment
     private void addSong(String songID, String songTitle, String songThumbnailURL){
-        playlistSongIDs.add(songID);    // add the songID to playlist
-        playlistSongTitles.add(songTitle); // add the song title to playlist
-        thumbnailURLS.add(songThumbnailURL);
+
+        SongData song = new SongData();
+        song.songID = songID;
+        song.songTitle = songTitle;
+        song.songThumbnailURL = songThumbnailURL;
+
+        songList.add(song);
+        //playlistSongIDs.add(songID);    // add the songID to playlist
+        //playlistSongTitles.add(songTitle); // add the song title to playlist
+        //thumbnailURLS.add(songThumbnailURL);
 
         // AsyncTask to download the thumbnail images
         class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
@@ -420,7 +443,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
 
             // called after bitmap is loaded and returned from doInBackground()
             protected void onPostExecute(Bitmap result) {
-                playlistThumbnails.add(result); // add the song thumbnail to playlist
+                //playlistThumbnails.add(result); // add the song thumbnail to playlist
                 playlistFragment.updateListView(); // notify playlistFragment of the changes
             }
         }
@@ -499,10 +522,16 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                     final String songTitle = br.readLine();
                     final String songThumbnail = br.readLine();
                     final Bitmap thumbnail = getImage(songThumbnail);
-                    playlistSongIDs.add(songId);    // add the songID to playlist
-                    playlistSongTitles.add(songTitle); // add the song title to playlist
-                    playlistThumbnails.add(thumbnail); // add the song thumbnail to playlist
-                    thumbnailURLS.add(songThumbnail);
+
+                    SongData song = new SongData();
+                    song.songID = songId;
+                    song.songTitle = songTitle;
+                    song.songThumbnail = thumbnail;
+                    song.songThumbnailURL = songThumbnail;
+                    //playlistSongIDs.add(songId);    // add the songID to playlist
+                    //playlistSongTitles.add(songTitle); // add the song title to playlist
+                    //playlistThumbnails.add(thumbnail); // add the song thumbnail to playlist
+                    //thumbnailURLS.add(songThumbnail);
 
                     if (player != null) {
                         runOnUiThread(new Runnable() {
@@ -517,9 +546,13 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                     //Send playlist back to client
                     OutputStream out = socket.getOutputStream();
                     PrintStream outValue = new PrintStream(out);
-                    outValue.println(playlistSongTitles.size()); // send size of songname Array
-                    for (int i = 0; i < playlistSongTitles.size(); i++) {
-                        outValue.println(playlistSongTitles.get(i));
+                    //outValue.println(playlistSongTitles.size()); // send size of songname Array
+                    outValue.println(songList.size());
+                    //for (int i = 0; i < playlistSongTitles.size(); i++) {
+                      //  outValue.println(playlistSongTitles.get(i));
+                    //}
+                    for (int i = 0; i < songList.size(); i++) {
+                        outValue.println(songList.get(i));
                     }
 
                 }
@@ -528,17 +561,21 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                     //Send playlist back to client
                     OutputStream out = socket.getOutputStream();
                     PrintStream outValue = new PrintStream(out);
-                    outValue.println(playlistSongTitles.size()); // send size of songname Array
-                    for (int i = 0; i < playlistSongTitles.size(); i++) {
-                        outValue.println(playlistSongTitles.get(i));
+                    //outValue.println(playlistSongTitles.size()); // send size of songname Array
+                    //for (int i = 0; i < playlistSongTitles.size(); i++) {
+                     //   outValue.println(playlistSongTitles.get(i));
+                   // }
+                    outValue.println(songList.size()); // send size of songname Array
+                    for (int i = 0; i < songList.size(); i++) {
+                        outValue.println(songList.get(i));
                     }
 
                 }
                 else if(messageType == ClientMainActivity.GET_NOW_PLAYING)
                 {
                     //Return data about song playing now
-                    String nowPlayingThumbnail = thumbnailURLS.get(0);
-                    String nowPlayingTitle = playlistSongTitles.get(0);
+                    String nowPlayingThumbnail = songList.get(0).songThumbnailURL;
+                    String nowPlayingTitle = songList.get(0).songTitle;
                     OutputStream out = socket.getOutputStream();
                     PrintStream printStream = new PrintStream(out);
                     printStream.println(nowPlayingThumbnail);
