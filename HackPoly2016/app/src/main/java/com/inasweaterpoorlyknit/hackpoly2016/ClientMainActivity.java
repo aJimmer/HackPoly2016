@@ -33,6 +33,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 
 public class ClientMainActivity extends AppCompatActivity {
@@ -57,6 +58,7 @@ public class ClientMainActivity extends AppCompatActivity {
     private ArrayList<String> thumbnailURLs;
     private ArrayList<String> historyTitles;
     private ArrayList<Bitmap> historyThumbnails;
+    private HashMap<String, Bitmap> thumbnailsDownloaded;
 
     private ViewPager viewPager;    // view pager will link our three fragments
     private TabLayout tabLayout;    // the tabs that initiate the change between fragments
@@ -95,6 +97,7 @@ public class ClientMainActivity extends AppCompatActivity {
         thumbnailURLs = new ArrayList<>();
         historyTitles = new ArrayList<>();
         historyThumbnails = new ArrayList<>();
+        thumbnailsDownloaded = new HashMap<>();
 
         // initialize playlist fragment with current tracks
         playlistFragment = new PlaylistFragment();  // intialize playlist fragment
@@ -197,11 +200,28 @@ public class ClientMainActivity extends AppCompatActivity {
             BufferedReader br = new BufferedReader(read);
             int playlistSize = Integer.parseInt(br.readLine());
             playlistTitles.clear();
-            playlistThumbnails.clear();
+            thumbnailURLs.clear();
             for(int i = 0; i < playlistSize; i++)
             {
                 playlistTitles.add(br.readLine());
-                playlistThumbnails.add(nowPlayingThumbnail);
+                //Get the thumbnailURL from server
+                String thumbnailURL = br.readLine();
+                //Add to arraylist of URLS and check if the thumbnail has
+                //been downloaded already
+                thumbnailURLs.add(thumbnailURL);
+                if (!thumbnailsDownloaded.containsKey(thumbnailURL)) {
+                    Bitmap thumbnail = getImage(thumbnailURL);
+                    //Put the bitmap associated the thumbnail URL is the hashmap
+                    thumbnailsDownloaded.put(thumbnailURL, thumbnail);
+                }
+            }
+            playlistThumbnails.clear();
+            //Go through every string value in the new thumbnailURL list
+            //and add the Bitmaps associated with these URLS to the
+            //playlistThumbnails arraylist
+            for (int i = 0; i < thumbnailURLs.size(); i++) {
+                Bitmap tempThumbnail = thumbnailsDownloaded.get(thumbnailURLs.get(i));
+                playlistThumbnails.add(tempThumbnail);
             }
 
             runOnUiThread(new Runnable() {

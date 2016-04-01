@@ -520,6 +520,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                     outValue.println(playlistSongTitles.size()); // send size of songname Array
                     for (int i = 0; i < playlistSongTitles.size(); i++) {
                         outValue.println(playlistSongTitles.get(i));
+                        outValue.println(thumbnailURLs.get(i));
                     }
 
                 }
@@ -531,6 +532,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
                     outValue.println(playlistSongTitles.size()); // send size of songname Array
                     for (int i = 0; i < playlistSongTitles.size(); i++) {
                         outValue.println(playlistSongTitles.get(i));
+                        outValue.println(thumbnailURLs.get(i));
                     }
 
                 }
