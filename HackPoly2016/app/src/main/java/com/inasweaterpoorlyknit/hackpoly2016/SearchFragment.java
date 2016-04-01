@@ -41,9 +41,6 @@ public class SearchFragment extends Fragment {
     public List<SearchResult> searchResults; // list to hold the search results from youtube's search api
 
     public ArrayList<SongData> songList;
-    //public ArrayList<String> searchTitles;
-    //public ArrayList<Bitmap> searchThumbnails;
-    //public ArrayList<String> searchThumbnailURLs;
     private long numSearchResults;
 
     private PlaylistAdapter resultsAdapter;
@@ -70,9 +67,6 @@ public class SearchFragment extends Fragment {
 
         selectedVideoIndex = -1;
         songList = new ArrayList<>();
-        //searchTitles = new ArrayList<>();
-        //searchThumbnails = new ArrayList<>();
-        //searchThumbnailURLs = new ArrayList<>();
 
         searchEditText = (EditText) rootView.findViewById(R.id.search_fragment_edit_text);
 
@@ -119,22 +113,47 @@ public class SearchFragment extends Fragment {
                     try {
                         // have the object wait until it is notified
                         lock.wait();
+                        final SongData song = new SongData();
 
                         if(searchResults != null) { // if there are results to return
                             songList.clear();
 
-                            SongData song = new SongData();
-                            //searchTitles.clear();  // first clear the result Titles
-                            //searchThumbnails.clear(); // and the result Thumbnails
-                            // for each searchResult, set it in the result Titles
+
+
                             for (SearchResult searchResult : searchResults) {
                                 song.songTitle = searchResult.getSnippet().getTitle();
-                               // searchTitles.add(searchResult.getSnippet().getTitle());
                                 song.songThumbnailURL = searchResult.getSnippet().getThumbnails().getDefault().getUrl();
 
-                                new DownloadThumbnailTask().execute(song.songThumbnailURL);
+                                class DownloadThumbnailTask extends AsyncTask<String, Void, Bitmap> {
+                                    // downloads any number of URLs in the background
+                                    protected Bitmap doInBackground(String... urls) {
+                                        String urlDisplay = urls[0];    // save the first url
+                                        Bitmap thumbnail = null;          // thumbnail, set to null
+                                        try {
+                                            InputStream in = new java.net.URL(urlDisplay).openStream(); // get an input stream from specified url
+                                            thumbnail = BitmapFactory.decodeStream(in);   // decode the inputStream as a Bitmap
+                                        } catch (Exception e) { // printe any errors
+                                            Log.e("Error", e.getMessage());
+                                            e.printStackTrace();
+                                        }
+                                        return thumbnail;   // return the thumbnail
+                                    }
+
+                                    // called after bitmap is loaded and returned from doInBackground()
+                                    protected void onPostExecute(Bitmap result) {
+                                        song.songThumbnail = result; // add the song thumbnail to playlist
+                                        resultsAdapter.notifyDataSetChanged();
+                                    }
+                                }
+
+                                new DownloadThumbnailTask().execute(song.songThumbnailURL);//Todo: this sets the thumbnail right?
+                                songList.add(song);
+
                             }
+
                         }
+
+
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -214,25 +233,5 @@ public class SearchFragment extends Fragment {
     }
 
     // AsyncTask to download the thumbnail images
-    public class DownloadThumbnailTask extends AsyncTask<String, Void, Bitmap> {
-        // downloads any number of URLs in the background
-        protected Bitmap doInBackground(String... urls) {
-            String urlDisplay = urls[0];    // save the first url
-            Bitmap thumbnail = null;          // thumbnail, set to null
-            try {
-                InputStream in = new java.net.URL(urlDisplay).openStream(); // get an input stream from specified url
-                thumbnail = BitmapFactory.decodeStream(in);   // decode the inputStream as a Bitmap
-            } catch (Exception e) { // printe any errors
-                Log.e("Error", e.getMessage());
-                e.printStackTrace();
-            }
-            return thumbnail;   // return the thumbnail
-        }
 
-        // called after bitmap is loaded and returned from doInBackground()
-        protected void onPostExecute(Bitmap result) {
-            //searchThumbnails.add(result); // add the song thumbnail to playlist
-            resultsAdapter.notifyDataSetChanged();
-        }
-    }
 }
