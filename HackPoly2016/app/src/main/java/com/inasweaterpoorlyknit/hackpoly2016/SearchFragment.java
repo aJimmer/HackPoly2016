@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -31,6 +32,8 @@ import java.util.List;
 import java.util.Properties;
 
 public class SearchFragment extends Fragment {
+
+    private FragmentActivity activity;
 
     private EditText searchEditText;
     private Button searchButton;
@@ -66,6 +69,7 @@ public class SearchFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_search, container, false);
 
         numSearchResults = Search.NUMBER_OF_VIDEOS_TO_RETURN;
+        activity = getActivity();
 
         selectedVideoIndex = -1;
         searchTitles = new ArrayList<>();
@@ -121,6 +125,7 @@ public class SearchFragment extends Fragment {
                         if(searchResults != null) { // if there are results to return
                             searchTitles.clear();  // first clear the result Titles
                             searchThumbnails.clear(); // and the result Thumbnails
+                            searchThumbnailURLs.clear();
                             // for each searchResult, set it in the result Titles
                             for (SearchResult searchResult : searchResults) {
                                 searchTitles.add(searchResult.getSnippet().getTitle());
@@ -154,10 +159,25 @@ public class SearchFragment extends Fragment {
                 // only do something if the user actually searched for a video
                 if (selectedVideoIndex >= 0) {
                     // if user selected any video add to playlist
-                    ((ServerLobby) getActivity()).addSong(searchResults.get(selectedVideoIndex).getId().getVideoId(),
-                            searchTitles.get(selectedVideoIndex),
-                            searchThumbnails.get(selectedVideoIndex), searchThumbnailURLs.get(selectedVideoIndex));
-                    Toast.makeText(view.getContext(), "Song added to current playlist.", Toast.LENGTH_SHORT).show();
+                    if(activity instanceof ServerLobby){
+                        ((ServerLobby) getActivity()).addSong(searchResults.get(selectedVideoIndex).getId().getVideoId(),
+                                searchTitles.get(selectedVideoIndex),
+                                searchThumbnails.get(selectedVideoIndex), searchThumbnailURLs.get(selectedVideoIndex));
+                        Toast.makeText(view.getContext(), "Song added to current playlist.", Toast.LENGTH_SHORT).show();
+                    }
+                    if(activity instanceof ClientMainActivity){
+                        Runnable clientAddTask = new Runnable(){
+                            @Override
+                            public void run() {
+                                ((ClientMainActivity) getActivity()).addSong(searchResults.get(selectedVideoIndex).getId().getVideoId(),
+                                        searchTitles.get(selectedVideoIndex),
+                                        searchThumbnails.get(selectedVideoIndex), searchThumbnailURLs.get(selectedVideoIndex));
+                            }
+                        };
+                        Thread clientAddThread = new Thread(clientAddTask);
+                        clientAddThread.start();
+                        Toast.makeText(view.getContext(), "Song added to server playlist.", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
                     // inform user they must search for a video first
                     Toast.makeText(view.getContext(), "Search for a video first.", Toast.LENGTH_SHORT).show();

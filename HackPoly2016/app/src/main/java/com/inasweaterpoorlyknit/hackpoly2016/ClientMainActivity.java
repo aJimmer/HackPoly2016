@@ -1,7 +1,6 @@
 package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -11,16 +10,13 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,16 +41,36 @@ public class ClientMainActivity extends AppCompatActivity {
     public String songRequest;
     Button sendRequest;
     Button connectToHost;
+
+    //private ListView PLAYLISTTITLES;
+    //private ArrayList<String> songList;
+    //private ArrayAdapter<String> listAdapter;
+
     private CardView nowPlayingCard;
-    private ImageView nowPlayingThumnail;
+    private ImageView nowPlayingThumbnailView;
     private TextView nowPlayingText;
-    private ListView clientList;
-    private ArrayList<String> songList;
-    private ArrayAdapter<String> listAdapter;
+    private Bitmap nowPlayingThumbnail;
+    private String nowPlayingThumbnailURL;
+
+    private ArrayList<String> playlistTitles;
+    private ArrayList<Bitmap> playlistThumbnails;
+    private ArrayList<String> thumbnailURLs;
+    private ArrayList<String> historyTitles;
+    private ArrayList<Bitmap> historyThumbnails;
+
+    private ViewPager viewPager;    // view pager will link our three fragments
+    private TabLayout tabLayout;    // the tabs that initiate the change between fragments
+
+    private HistoryFragment historyFragment;       // fragment to display playlist history
+    private PlaylistFragment playlistFragment;      // fragment to display the current playlist
+    private SearchFragment searchFragment;          // fragment to allow searching and adding new songs
+    private DiscoverPartyFragment discoverPartyFragment;
+
     SharedPreferences prefs;
     private String returnedVideoID;
     private String returnedVideoTitle;
     private String returnVideoThumbnail;
+
     public String ipStr;
     TextView hostDisplay;
     private String hostAddress;
@@ -64,71 +80,54 @@ public class ClientMainActivity extends AppCompatActivity {
     private IntentFilter  intentFilter;
 
     public static final int GET_PLAYLIST = 1;
+    //private static final int SEARCH_CODE = 2;
     public static final int ADD_NEW_SONG = 3;
     public static final int VOTE_SONG = 4;
     public static final int GET_NOW_PLAYING = 5;
-    private static final int SEARCH_CODE = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.client_toolbar);
-        setSupportActionBar(toolbar);
-        debugCardView();
+
+        playlistTitles = new ArrayList<>();
+        playlistThumbnails = new ArrayList<>();
+        thumbnailURLs = new ArrayList<>();
+        historyTitles = new ArrayList<>();
+        historyThumbnails = new ArrayList<>();
+
+        // initialize playlist fragment with current tracks
+        playlistFragment = new PlaylistFragment();  // intialize playlist fragment
+        playlistFragment.setPlaylistAdapter(this, playlistTitles, playlistThumbnails);
+
+        // initialize search fragment
+        searchFragment = new SearchFragment();
+
+        // initialize history fragment
+        historyFragment = new HistoryFragment();  // intialize history fragment
+        historyFragment.setPlaylistAdapter(this, historyTitles, historyThumbnails);
+
+        // initialize discovery party fragment
+        discoverPartyFragment = new DiscoverPartyFragment();
+
+        // initialize the viewPager to link to the three fragments(Playlist, Search, History)
+        viewPager = (ViewPager) findViewById(R.id.client_viewpager);
+        setupViewPager(viewPager);
+
+        // initialize the tablayout with the info from viewPager
+        tabLayout = (TabLayout) findViewById(R.id.client_tabs);
+        tabLayout.setupWithViewPager(viewPager);
+
+        debugCardView();    // displaying the card view with hard coded data
+
         ipStr ="";
         hostAddress = null;
-        clientList = (ListView)findViewById(R.id.client_list);
-        songList = new ArrayList<>();
-        listAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, songList);
-        clientList.setAdapter(listAdapter);
-        FloatingActionButton search_button = (FloatingActionButton)findViewById(R.id.find_button);
-        search_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), SearchActivity.class);
-                startActivity(intent);
-            }
-        });
-        connectToHost = (Button)findViewById(R.id.connectToHost);
 
-        connectToHost.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Runnable task = new Runnable() {
-                    @Override
-                    public void run() {
-                        manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
-                            @Override
-                            public void onSuccess() {
-                                Log.d(WifiP2pReceiver.logType, "Discovery succeeded");
-                            }
-
-                            @Override
-                            public void onFailure(int reason) {
-
-                            }
-                        });
-                    }
-                };
-                Thread newThread = new Thread(task);
-                newThread.start();
-            }
-        });
-
-        final FloatingActionButton findButton = (FloatingActionButton) findViewById(R.id.find_button);
-        findButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                searchSong();
-            }
-        });
         registerReceiver();
-        nowPlayingCard = (CardView)findViewById(R.id.client_card);
-        nowPlayingThumnail = (ImageView)nowPlayingCard.findViewById(R.id.cardThumbail);
-        nowPlayingText = (TextView)nowPlayingCard.findViewById(R.id.now_playing_song_title);
 
+        nowPlayingCard = (CardView)findViewById(R.id.client_card);
+        nowPlayingThumbnailView = (ImageView)nowPlayingCard.findViewById(R.id.cardThumbail);
+        nowPlayingText = (TextView)nowPlayingCard.findViewById(R.id.now_playing_song_title);
     }
     @Override
     protected void onResume()
@@ -143,10 +142,15 @@ public class ClientMainActivity extends AppCompatActivity {
         unregisterReceiver(receiver);
     }
 
-    public void searchSong() {
-        Intent searchIntent = new Intent(this, SearchActivity.class);
-        searchIntent.putExtra("song", "name");
-        startActivityForResult(searchIntent, SEARCH_CODE);
+    //   setupViewPager is a layout manager that allows us to flip left and right through fragments
+    //   we initialize it with our PlaylistFragment, SearchFragment, and HistoryFragment
+    private void setupViewPager(ViewPager viewPager) {
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager()); // initialize a viewPagerAdapter
+        adapter.addFragment(playlistFragment, getResources().getString(R.string.title_playlist));   // Add the playlist,
+        adapter.addFragment(searchFragment, getResources().getString(R.string.title_search));       // search, and
+        adapter.addFragment(historyFragment, getResources().getString(R.string.title_history));     // history fragments
+        adapter.addFragment(discoverPartyFragment, getResources().getString(R.string.title_discover_party));
+        viewPager.setAdapter(adapter);  // set the adapter to our viewPager
     }
 
     public void testConnection(){
@@ -167,13 +171,15 @@ public class ClientMainActivity extends AppCompatActivity {
     }
 
     /**
-     * sends a new song to server
      *
      * @param songId
      * @param songName
-     * @param songThumbNail
+     * @param songThumbnail
+     * @param songThumbnailURL
      */
-    public void addSong(String songId, String songName, String songThumbNail) {
+    public void addSong(String songId, String songName, Bitmap songThumbnail, String songThumbnailURL) {
+        getNowPlaying();
+
         Socket socket = null;
         try {
             socket = new Socket(hostAddress, WifiP2pReceiver.PORT);
@@ -183,30 +189,35 @@ public class ClientMainActivity extends AppCompatActivity {
             PrintStream out = new PrintStream(os);
             out.println(songId);
             out.println(songName);
-            out.println(songThumbNail);
+            out.println(songThumbnailURL);
 
             //Recieve Playlist from server
             InputStream in = socket.getInputStream();
             InputStreamReader read = new InputStreamReader(in, "UTF-8");
             BufferedReader br = new BufferedReader(read);
             int playlistSize = Integer.parseInt(br.readLine());
-            songList.clear();
+            playlistTitles.clear();
+            playlistThumbnails.clear();
             for(int i = 0; i < playlistSize; i++)
             {
-                songList.add(br.readLine());
-
+                playlistTitles.add(br.readLine());
+                playlistThumbnails.add(nowPlayingThumbnail);
             }
+
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    listAdapter.notifyDataSetChanged();
+                    //listAdapter.notifyDataSetChanged();
+                    playlistFragment.updateListView();
                 }
             });
+
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
     public void getNowPlaying()
     {
         Socket socket = null;
@@ -223,14 +234,21 @@ public class ClientMainActivity extends AppCompatActivity {
             //Get the bitmap and song title
             final String thumbnailURL = br.readLine();
             final String nowPlayingSongTitle = br.readLine();
-            final Bitmap nowPlayingThumb = getImage(thumbnailURL);
-            socket.close();
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    updateNowPlaying(nowPlayingThumb, nowPlayingSongTitle);
-                }
-            });
+            if(!nowPlayingThumbnailURL.equals(thumbnailURL)){
+                historyTitles.add(0, nowPlayingText.getText().toString()); // remove the top song title and place it in front of historySongTitles
+                historyThumbnails.add(0, nowPlayingThumbnail); // remove the top song thumbnail and place it in front of historyThumbnails
+                nowPlayingThumbnailURL = thumbnailURL;
+
+                final Bitmap nowPlayingThumb = getImage(thumbnailURL);
+                socket.close();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateNowPlaying(nowPlayingThumb, nowPlayingSongTitle);
+                        historyFragment.updateListView();   // update history's list view
+                    }
+                });
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -244,34 +262,11 @@ public class ClientMainActivity extends AppCompatActivity {
      */
     public void updateNowPlaying(Bitmap thumbnail, String songTitle)
     {
-        nowPlayingThumnail.setImageBitmap(thumbnail);
+        nowPlayingThumbnail = thumbnail;
+        nowPlayingThumbnailView.setImageBitmap(nowPlayingThumbnail);
         nowPlayingText.setText(songTitle);
+    }
 
-    }
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        // Make sure the request was successful
-        if (resultCode == RESULT_OK) {
-            // Check which request we're responding to
-            if (requestCode == SEARCH_CODE) {
-                if(data.getExtras().containsKey("Song ID")){
-                    returnedVideoID = data.getStringExtra("Song ID");
-                    returnedVideoTitle = data.getStringExtra("Song Title");
-                    returnVideoThumbnail = data.getStringExtra("Song Thumbnail");
-                    Runnable task = new Runnable() {
-                        @Override
-                        public void run() {
-                            addSong(returnedVideoID, returnedVideoTitle, returnVideoThumbnail);
-                            getNowPlaying();
-                        }
-                    };
-                    Thread newThread = new Thread(task);
-                    newThread.start();
-                }
-            }
-        }
-    }
     public void readBroadcast() throws IOException {
         String ipAddress = getLocalIpAddress();
         DatagramSocket socket = new DatagramSocket();
@@ -389,6 +384,8 @@ public class ClientMainActivity extends AppCompatActivity {
     }
     public void debugCardView()
     {
+        nowPlayingThumbnailURL = "https://i.ytimg.com/vi/S-Xm7s9eGxU/default.jpg";
+
         //debug cardView
         Runnable runnable = new Runnable() {
             @Override
@@ -397,11 +394,11 @@ public class ClientMainActivity extends AppCompatActivity {
 
                 final ImageView cardImage = (ImageView)cardView.findViewById(R.id.cardThumbail);
                 final Bitmap testThumb = getImage("https://i.ytimg.com/vi/S-Xm7s9eGxU/default.jpg");
+                nowPlayingThumbnail = testThumb;
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         cardImage.setImageBitmap(testThumb);
-
                     }
                 });
 
