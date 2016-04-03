@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -31,7 +32,7 @@ import java.util.List;
 import java.util.Properties;
 
 public class SearchFragment extends Fragment {
-
+    private FragmentActivity activity;
     private EditText searchEditText;
     private Button searchButton;
     private ListView searchListView;
@@ -43,7 +44,7 @@ public class SearchFragment extends Fragment {
     public ArrayList<SongData> songList;
     private long numSearchResults;
 
-    private PlaylistAdapter resultsAdapter;
+    private SearchListAdapter resultsAdapter;
 
     private String webKey;
 
@@ -64,7 +65,7 @@ public class SearchFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_search, container, false);
 
         numSearchResults = Search.NUMBER_OF_VIDEOS_TO_RETURN;
-
+        activity = getActivity();
         selectedVideoIndex = -1;
         songList = new ArrayList<>();
 
@@ -113,14 +114,11 @@ public class SearchFragment extends Fragment {
                     try {
                         // have the object wait until it is notified
                         lock.wait();
-                        final SongData song = new SongData();
 
                         if(searchResults != null) { // if there are results to return
                             songList.clear();
-
-
-
                             for (SearchResult searchResult : searchResults) {
+                                final SongData song = new SongData();
                                 song.songTitle = searchResult.getSnippet().getTitle();
                                 song.songThumbnailURL = searchResult.getSnippet().getThumbnails().getDefault().getUrl();
 
@@ -163,7 +161,7 @@ public class SearchFragment extends Fragment {
 
         // if an item in the list is clicked, save it's current index in the list view
         searchListView = (ListView) rootView.findViewById(R.id.search_fragment_list_view);
-        resultsAdapter = new PlaylistAdapter(getActivity(), songList);
+        resultsAdapter = new SearchListAdapter(getActivity(), songList);
         searchListView.setAdapter(resultsAdapter);
         searchListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
