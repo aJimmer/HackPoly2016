@@ -83,7 +83,6 @@ public class WifiP2pReceiver extends BroadcastReceiver{
         mThisDevice = null;
         isConnected = new HashMap<>();
         mServerIp = null;
-
     }
     @Override
     public void onReceive(Context context, Intent intent) {
