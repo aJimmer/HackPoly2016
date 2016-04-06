@@ -35,16 +35,22 @@ public class PlaylistAdapter extends ArrayAdapter<SongData> {
 
         if (songList.size() > position) {
 
-            SongData holder = null;
-            holder = new SongData();
+            final SongData holder = new SongData();
+
             holder.rowdata = songList.get(position);
             holder.title = (TextView) view.findViewById(R.id.song_title);
             holder.title.setText(holder.rowdata.songTitle); //CAN ANYONE CHECK THIS OUT FOR ME????
             holder.thumbnail = (ImageView) view.findViewById(R.id.video_thumbnail);
             holder.thumbnail.setImageBitmap(holder.rowdata.songThumbnail);
             holder.button = (Button) view.findViewById(R.id.upvoteButton);
+            holder.button.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v) {
+                    holder.voteCount++;
+                    holder.button.setText("UPVOTED: " + holder.voteCount);
 
-            //holder.button.setTag(holder.rowdata);
+                }
+            });
 
         }
         return view; // return the rowView that was created
