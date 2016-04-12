@@ -2,15 +2,14 @@ package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-
 import java.util.ArrayList;
+
 
 /**
 *   PlaylistFragment displays a playlist of songTitles and songThumbnails
@@ -43,8 +42,8 @@ public class PlaylistFragment extends Fragment {
         return rootView;    // Inflate the layout for this fragment
     }
 
-    public void setPlaylistAdapter(Activity context, ArrayList<String> songTitles, ArrayList<Bitmap> thumbnails){
-        this.playlistAdapter = new PlaylistAdapter(context, songTitles, thumbnails);
+    public void setPlaylistAdapter(Activity context,  ArrayList<SongData> songList){
+        this.playlistAdapter = new PlaylistAdapter(context,  songList);
     }
 
     @Override

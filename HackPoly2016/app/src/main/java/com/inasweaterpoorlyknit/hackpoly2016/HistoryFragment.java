@@ -18,7 +18,7 @@ import java.util.ArrayList;
 public class HistoryFragment extends Fragment {
 
     private ListView historyListView; // list view to display the playlist
-    private PlaylistAdapter historyAdapter;
+    private HistoryAdapter historyAdapter;
     private boolean adapterSet = false;
 
     public HistoryFragment() {
@@ -45,8 +45,8 @@ public class HistoryFragment extends Fragment {
         return rootView;    // Inflate the layout for this fragment
     }
 
-    public void setPlaylistAdapter(Activity context, ArrayList<String> songTitles, ArrayList<Bitmap> thumbnails){
-        this.historyAdapter = new PlaylistAdapter(context, songTitles, thumbnails);
+    public void setPlaylistAdapter(Activity context, ArrayList<SongData> songList_History){
+        this.historyAdapter = new HistoryAdapter(context, songList_History);
         adapterSet = true;
     }
 
