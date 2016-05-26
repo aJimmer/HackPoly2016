@@ -1,7 +1,9 @@
 package com.inasweaterpoorlyknit.hackpoly2016;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -25,6 +27,7 @@ public class PlaylistFragment extends Fragment {
     private ListView playlistListView; // list view to display the playlist
     private PlaylistAdapter playlistAdapter;
     private View rootView;
+    private Activity context;
     public PlaylistFragment() {
         // Required empty public constructor
     }
@@ -33,6 +36,7 @@ public class PlaylistFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // accomplish most tasks only when the view is created in onCreateView
+
     }
 
     @Override
@@ -61,12 +65,18 @@ public class PlaylistFragment extends Fragment {
         super.onDetach();
     }
 
+    @Override
+    public Activity getContext() {
+        return context = playlistAdapter.getContext();
+    }
+
     public void updateListView() {
 
         this.playlistAdapter.notifyDataSetChanged();
     }
-    public View getView() {
+    public ListView getPlaylistListView() {
 
-        return rootView;
+        return playlistListView;
     }
+
 }

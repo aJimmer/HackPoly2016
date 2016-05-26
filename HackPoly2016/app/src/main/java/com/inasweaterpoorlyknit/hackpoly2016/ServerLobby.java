@@ -1,4 +1,5 @@
 package com.inasweaterpoorlyknit.hackpoly2016;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.IntentFilter;
@@ -16,7 +17,10 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.Toast;
 
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
@@ -37,7 +41,10 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.sql.Array;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Properties;
 
 public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnInitializedListener{
@@ -63,6 +70,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
     private Thread p2pThread;                       //thread that the wifi p2p runs on
     private ServerSocket serverSocket;              //Server socket that listens for clients
 
+    private ListView playlistListView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,6 +79,7 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         // initialize our arrays to hold the song ids, titles, and thumbnails
         songList = new ArrayList<>();
         songList_History = new ArrayList<>();
+
 
         // four hardcoded songs to assist with debugging
         this.addSong("S-Xm7s9eGxU", "Erik Satie - Gymnopédie No.1", "https://i.ytimg.com/vi/S-Xm7s9eGxU/default.jpg");
@@ -81,7 +90,11 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         // initialize playlist fragment with current tracks
         playlistFragment = new PlaylistFragment();  // intialize playlist fragment
         //playlistFragment.addClickListener(songList);
+
         playlistFragment.setPlaylistAdapter(this, songList);
+
+
+
 
         // initialize search fragment
         searchFragment = new SearchFragment();
@@ -333,6 +346,10 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
             //youTubePlayer.loadVideo(playlistSongIDs.get(0)); // the first song on our debug list of songs
             this.player = youTubePlayer;
             player.setShowFullscreenButton(false);  // prev & next buttons currently disabled from our player
+
+            playlistListView = playlistFragment.getPlaylistListView();
+            playlistListView.setOnItemClickListener(new ListClickHandler());
+
             player.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
 
                 @Override
@@ -586,4 +603,61 @@ public class ServerLobby extends AppCompatActivity implements YouTubePlayer.OnIn
         return thumbnail;
     }
 
+
+    /**
+     * Create a voting dialog box when user presses a
+     * entry in the song list
+     * */
+    public void createVotingDialog(int position) {
+
+        final int itemPosition = position;
+        AlertDialog.Builder votingDialog = new AlertDialog.Builder(this);
+        votingDialog.setTitle("Vote for song");
+        votingDialog.setPositiveButton("Vote Up", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //Increment the vote counter for the song clicked on
+                songList.get(itemPosition).incrementVote();
+                Collections.sort(songList, sortByVote);
+                playlistFragment.updateListView();
+            }
+        });
+        votingDialog.setNegativeButton("Vote Down", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //Decrement the vote counter for the song clicked on
+                songList.get(itemPosition).decrementVote();
+                Collections.sort(songList, sortByVote);
+                playlistFragment.updateListView();
+            }
+        });
+        AlertDialog dialog = votingDialog.create();
+        dialog.show();
+    }
+
+    public Comparator<SongData> sortByVote = new Comparator<SongData>() {
+
+        public int compare(SongData song1, SongData song2) {
+            if (song1.getVoteCount() > song2.getVoteCount()) {
+                return -1;
+            } else if (song1.getVoteCount() < song2.getVoteCount()) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+    };
+
+    public class ListClickHandler implements AdapterView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            Context context = getApplicationContext();
+            //Get the song title from the playlistSongTitles using the index = postion
+            //position is the entry in the list clicked
+            String chosenSong = songList.get(position).songTitle;
+            CharSequence text = "Chosen song: " + chosenSong + " Vote Count: " + songList.get(position).getVoteCount();
+            Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
+            createVotingDialog(position); //User Votes for the song, either a down vote or up vote
+        }
+    }
 }

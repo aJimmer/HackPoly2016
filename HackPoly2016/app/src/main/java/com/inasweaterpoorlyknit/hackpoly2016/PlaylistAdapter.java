@@ -33,7 +33,9 @@ public class PlaylistAdapter extends ArrayAdapter<SongData> {
         this.songList = songList;
     }
 
-
+    public Activity getContext(){
+        return context;
+    }
     @Override
     public View getView(int position, View view, ViewGroup parent) {
 
@@ -48,39 +50,8 @@ public class PlaylistAdapter extends ArrayAdapter<SongData> {
             holder.title.setText(holder.rowdata.songTitle); //CAN ANYONE CHECK THIS OUT FOR ME????
             holder.thumbnail = (ImageView) view.findViewById(R.id.video_thumbnail);
             holder.thumbnail.setImageBitmap(holder.rowdata.songThumbnail);
-            holder.button = (Button) view.findViewById(R.id.upvoteButton);
 
         }
-
-        holder.button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                CharSequence options[] = new CharSequence[] {"UpVote", "DownVote" };
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                builder.setCancelable(false);
-                builder.setTitle("Select your option:");
-                builder.setItems(options, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // the user clicked on options[which]
-                        //if user clicks 'UpVote' then holder.voteCount++;
-                        //if user clicks 'DownVote' then holder.voteCount--;
-                        SongSorter sorter = new SongSorter(songList);
-                        songList = sorter.getSortedSongsByVote();
-                    }
-                });
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        //the user clicked on Cancel
-                    }
-                });
-                builder.show();
-
-                holder.button.setText("VOTED: " + holder.voteCount);
-            }
-        });
 
 
         return view; // return the rowView that was created

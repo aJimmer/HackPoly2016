@@ -18,15 +18,15 @@
         android:layout_alignParentTop="true" />
 
 
-    <Button
+    <!--<Button
         android:layout_width="wrap_content"
         android:layout_height="40dp"
         android:textSize="12sp"
-        android:text="UPVOTE!"
+        android:text="VOTE"
         android:id="@+id/upvoteButton"
         android:layout_below="@+id/song_title"
         android:layout_toRightOf="@+id/video_thumbnail"
         android:layout_toEndOf="@+id/video_thumbnail"
-        android:onClick=""/>
+        android:onClick=""/>-->
 
 </RelativeLayout>
