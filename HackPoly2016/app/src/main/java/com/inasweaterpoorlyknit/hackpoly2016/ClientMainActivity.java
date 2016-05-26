@@ -37,15 +37,8 @@ import java.util.HashMap;
 import java.util.regex.Pattern;
 
 public class ClientMainActivity extends AppCompatActivity {
-    
-    public final static String EXTRA_MESSAGE = "com.mycompany.myfirstapp.songrequest";
-    public String songRequest;
-    Button sendRequest;
-    Button connectToHost;
 
-    //private ListView PLAYLISTTITLES;
-    //private ArrayList<String> songList;
-    //private ArrayAdapter<String> listAdapter;
+    public final static String EXTRA_MESSAGE = "com.mycompany.myfirstapp.songrequest";
 
     private CardView nowPlayingCard;
     private ImageView nowPlayingThumbnailView;
@@ -53,11 +46,8 @@ public class ClientMainActivity extends AppCompatActivity {
     private Bitmap nowPlayingThumbnail;
     private String nowPlayingThumbnailURL;
 
-    private ArrayList<String> playlistTitles;
-    private ArrayList<Bitmap> playlistThumbnails;
-    private ArrayList<String> thumbnailURLs;
-    private ArrayList<String> historyTitles;
-    private ArrayList<Bitmap> historyThumbnails;
+    private ArrayList<SongData> songList;
+    private ArrayList<SongData> songList_History;
     private HashMap<String, Bitmap> thumbnailsDownloaded;
 
     private ViewPager viewPager;    // view pager will link our three fragments
@@ -68,11 +58,6 @@ public class ClientMainActivity extends AppCompatActivity {
     private SearchFragment searchFragment;          // fragment to allow searching and adding new songs
     private DiscoverPartyFragment discoverPartyFragment;
 
-    SharedPreferences prefs;
-    private String returnedVideoID;
-    private String returnedVideoTitle;
-    private String returnVideoThumbnail;
-
     public String ipStr;
     TextView hostDisplay;
     private String hostAddress;
@@ -82,7 +67,6 @@ public class ClientMainActivity extends AppCompatActivity {
     private IntentFilter  intentFilter;
 
     public static final int GET_PLAYLIST = 1;
-    //private static final int SEARCH_CODE = 2;
     public static final int ADD_NEW_SONG = 3;
     public static final int VOTE_SONG = 4;
     public static final int GET_NOW_PLAYING = 5;
@@ -92,23 +76,20 @@ public class ClientMainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client_main);
 
-        playlistTitles = new ArrayList<>();
-        playlistThumbnails = new ArrayList<>();
-        thumbnailURLs = new ArrayList<>();
-        historyTitles = new ArrayList<>();
-        historyThumbnails = new ArrayList<>();
+        songList = new ArrayList<>();
+        songList_History = new ArrayList<>();
         thumbnailsDownloaded = new HashMap<>();
 
         // initialize playlist fragment with current tracks
         playlistFragment = new PlaylistFragment();  // intialize playlist fragment
-        playlistFragment.setPlaylistAdapter(this, playlistTitles, playlistThumbnails);
+        playlistFragment.setPlaylistAdapter(this, songList);
 
         // initialize search fragment
         searchFragment = new SearchFragment();
 
         // initialize history fragment
         historyFragment = new HistoryFragment();  // intialize history fragment
-        historyFragment.setPlaylistAdapter(this, historyTitles, historyThumbnails);
+        historyFragment.setPlaylistAdapter(this, songList_History);
 
         // initialize discovery party fragment
         discoverPartyFragment = new DiscoverPartyFragment();
@@ -173,15 +154,15 @@ public class ClientMainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     *
-     * @param songId
-     * @param songName
-     * @param songThumbnail
-     * @param songThumbnailURL
-     */
     public void addSong(String songId, String songName, Bitmap songThumbnail, String songThumbnailURL) {
         getNowPlaying();
+
+        SongData song = null;
+
+        song.songID = songId;
+        song.songTitle = songName;
+        song.songThumbnail = songThumbnail;
+        song.songThumbnailURL = songThumbnailURL;
 
         Socket socket = null;
         try {
@@ -190,39 +171,42 @@ public class ClientMainActivity extends AppCompatActivity {
             OutputStream os = socket.getOutputStream();
             os.write(ClientMainActivity.ADD_NEW_SONG);
             PrintStream out = new PrintStream(os);
-            out.println(songId);
-            out.println(songName);
-            out.println(songThumbnailURL);
+            out.println(song.songID);
+            out.println(song.songTitle);
+            out.println(song.songThumbnailURL);
 
             //Recieve Playlist from server
             InputStream in = socket.getInputStream();
             InputStreamReader read = new InputStreamReader(in, "UTF-8");
             BufferedReader br = new BufferedReader(read);
             int playlistSize = Integer.parseInt(br.readLine());
-            playlistTitles.clear();
-            thumbnailURLs.clear();
+            songList.clear();
+            //thumbnailURLs.clear();
             for(int i = 0; i < playlistSize; i++)
             {
-                playlistTitles.add(br.readLine());
+                song.songTitle = br.readLine();
                 //Get the thumbnailURL from server
-                String thumbnailURL = br.readLine();
+                song.songThumbnailURL = br.readLine();
                 //Add to arraylist of URLS and check if the thumbnail has
                 //been downloaded already
-                thumbnailURLs.add(thumbnailURL);
-                if (!thumbnailsDownloaded.containsKey(thumbnailURL)) {
-                    Bitmap thumbnail = getImage(thumbnailURL);
+
+                if (!thumbnailsDownloaded.containsKey(song.songThumbnailURL)) {
+                    Bitmap thumbnail = getImage(song.songThumbnailURL);
                     //Put the bitmap associated the thumbnail URL is the hashmap
-                    thumbnailsDownloaded.put(thumbnailURL, thumbnail);
+                    thumbnailsDownloaded.put(song.songThumbnailURL, thumbnail);
                 }
+                songList.add(song);
             }
-            playlistThumbnails.clear();
+
+            //playlistThumbnails.clear();
+
             //Go through every string value in the new thumbnailURL list
             //and add the Bitmaps associated with these URLS to the
             //playlistThumbnails arraylist
-            for (int i = 0; i < thumbnailURLs.size(); i++) {
+            /*for (int i = 0; i < thumbnailURLs.size(); i++) {
                 Bitmap tempThumbnail = thumbnailsDownloaded.get(thumbnailURLs.get(i));
                 playlistThumbnails.add(tempThumbnail);
-            }
+            }*/
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -242,6 +226,7 @@ public class ClientMainActivity extends AppCompatActivity {
     {
         Socket socket = null;
         try {
+            final SongData song = null;
             socket = new Socket(hostAddress, WifiP2pReceiver.PORT);
             //Notify server client wants the song now playing
             OutputStream os = socket.getOutputStream();
@@ -252,19 +237,19 @@ public class ClientMainActivity extends AppCompatActivity {
             BufferedReader br = new BufferedReader(ins);
 
             //Get the bitmap and song title
-            final String thumbnailURL = br.readLine();
-            final String nowPlayingSongTitle = br.readLine();
-            if(!nowPlayingThumbnailURL.equals(thumbnailURL)){
-                historyTitles.add(0, nowPlayingText.getText().toString()); // remove the top song title and place it in front of historySongTitles
-                historyThumbnails.add(0, nowPlayingThumbnail); // remove the top song thumbnail and place it in front of historyThumbnails
-                nowPlayingThumbnailURL = thumbnailURL;
+            song.songThumbnailURL = br.readLine();
+            song.songTitle = br.readLine();
+            if(!nowPlayingThumbnailURL.equals(song.songThumbnailURL)){
+                songList_History.add(0, song); // remove the top song title and place it in front of historySongTitles
+                //historyThumbnails.add(0, nowPlayingThumbnail); // remove the top song thumbnail and place it in front of historyThumbnails
+                nowPlayingThumbnailURL = song.songThumbnailURL;
 
-                final Bitmap nowPlayingThumb = getImage(thumbnailURL);
+                final Bitmap nowPlayingThumb = getImage(song.songThumbnailURL);
                 socket.close();
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        updateNowPlaying(nowPlayingThumb, nowPlayingSongTitle);
+                        updateNowPlaying(nowPlayingThumb, song.songTitle);
                         historyFragment.updateListView();   // update history's list view
                     }
                 });
